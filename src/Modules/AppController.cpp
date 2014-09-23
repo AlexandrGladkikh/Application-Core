@@ -201,7 +201,7 @@ int AppControllerInit(HandlerAppController* handler, app::AppMessage *dataMsg)
     bodyMsg.append(buf);
     bodyMsg.append(DATAEND);
 
-    msg.CreateMessage(START, newNetID, newID);
+    msg.CreateMessage(bodyMsg.c_str(), newNetID, newID);
 
     dataMsg->AddMessage(msg, err);
 
