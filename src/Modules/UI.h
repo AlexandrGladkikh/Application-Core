@@ -4,7 +4,6 @@
 #pragma once
 
 #include "../including/AppData.h"
-#include <sys/select.h>
 
 namespace modules {
 ////////////////////////////////////

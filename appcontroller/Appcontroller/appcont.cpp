@@ -3,8 +3,9 @@
 
 using namespace std;
 
-void AppCont(app::Message& msg)
+bool AppCont(app::Message& msg)
 {
     cout << 1 << endl;
+    return true;
 }
 

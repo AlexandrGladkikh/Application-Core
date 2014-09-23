@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "errno.h"
 #include <string.h>
+#include <sys/select.h>
 #include "../Wrap/WrapNet.h"
 
 namespace modules

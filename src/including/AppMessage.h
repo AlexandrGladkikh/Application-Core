@@ -72,6 +72,8 @@ namespace app {
 
         pthread_mutex_t mutexArrModules;
 
+        int *sockNetModule;
+
         int countModules;
         int maxModules;
 
@@ -81,6 +83,7 @@ namespace app {
         ~AppMessage();
         void SetThreadParam(int countThread);
         int AddNewModule();
+        int AddNewModule(int* sockPipe);
         bool DeleteModule(int id);
         int GetCountModules();
 

@@ -17,6 +17,7 @@ void* Controller(void *appData)
 
     UILink linkUI;
     InitUILink(&dataMsg, &linkUI);
+
     ControllerHandler handler(&dataMsg, &linkUI);
 
     app::Message msg;

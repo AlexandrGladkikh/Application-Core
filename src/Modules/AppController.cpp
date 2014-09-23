@@ -90,7 +90,12 @@ bool HandlerAppController::handler(app::Message &event)
         eventStr = bodyMsg.substr(start+7, end);
     }
 
-    AppCont(event);
+    if (AppCont(event))
+    {
+        app::MsgError err;
+        dataMsg.AddMessage(event, err);
+        return true;
+    }
 
     if(!eventStr.compare(CREATENEWAPPCONTROLLER))
     {

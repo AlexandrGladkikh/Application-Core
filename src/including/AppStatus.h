@@ -29,7 +29,7 @@ enum ModuleStatus             // здесь указаны состояния м
 class ModuleState
 {
 private:
-    ModuleStatus datastatus[100];
+    ModuleStatus *datastatus;
 
     int maxModule;
 public:

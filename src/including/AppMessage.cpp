@@ -1,6 +1,7 @@
 #include "AppMessage.h"
-
-#include <iostream>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 namespace app {
 ////////////////////////////////////
@@ -117,6 +118,7 @@ AppMessage::~AppMessage()
     delete[] mutex;
     delete[] condition;
     delete[] arrModules;
+    delete[] sockNetModule;
 
     pthread_condattr_destroy(&attrCond);
     pthread_mutexattr_destroy(&attrMutex);
@@ -134,6 +136,8 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     mutex = new pthread_mutex_t[valueMaxModules];
     condition = new pthread_cond_t[valueMaxModules];
     arrModules = new int[valueMaxModules];
+    sockNetModule = new int[valueMaxModules];
+
     maxModules = valueMaxModules;
     statusmodule.SetMaxModule(valueMaxModules);
 
@@ -143,6 +147,9 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     arrModules[3] = 1;
     for(int i=4; i<valueMaxModules; i++)
         arrModules[i] = -1;
+
+    for(int i=4; i<valueMaxModules; i++)
+        sockNetModule[i] = -1;
 
     pthread_condattr_setpshared(&attrCond, PTHREAD_PROCESS_PRIVATE);
 
@@ -183,6 +190,28 @@ int AppMessage::AddNewModule()
     pthread_mutex_unlock(&mutexArrModules);
 }
 
+int AppMessage::AddNewModule(int* sockPipe)
+{
+    pthread_mutex_lock(&mutexArrModules);
+    if (countModules != maxModules && appClose != true)
+    {
+        for(int i=0; i< maxModules; i++)
+        if (arrModules[i] == -1)
+        {
+            arrModules[i] = 1;
+            countModules++;
+            int sock[2];
+            socketpair(AF_UNIX, SOCK_STREAM, 0, sock);
+            sockNetModule[i] = sock[0];
+            *sockPipe = sock[1];
+            return i;
+        }
+    }
+    else
+        return -1;
+    pthread_mutex_unlock(&mutexArrModules);
+}
+
 bool AppMessage::DeleteModule(int id)
 {
     pthread_mutex_lock(&mutexArrModules);
@@ -191,6 +220,8 @@ bool AppMessage::DeleteModule(int id)
         arrModules[id] = -1;
         countModules--;
         queueMessage[id].EraseMsg();
+        if (sockNetModule[id]!=-1)
+            sockNetModule[id] = -1;
         return true;
     }
     else
@@ -211,8 +242,15 @@ void AppMessage::AddMessage(Message msg,  MsgError &qerror)
 
         queueMessage[msg.GetRcv()].AddMessage(msg, qerror);
 
-        if (statusmodule.GetStatus(msg.GetRcv()) == StatusWait && qerror == ErrorNot)
+        if (statusmodule.GetStatus(msg.GetRcv()) == StatusWait && qerror == ErrorNot && sockNetModule[msg.GetRcv()] == -1)
             pthread_cond_signal(&condition[msg.GetRcv()]);
+        else
+        {
+            while (!write(sockNetModule[msg.GetRcv()], "read", 4))
+            {
+                ;
+            }
+        }
 
         pthread_mutex_unlock(&mutex[msg.GetRcv()]);
     }
@@ -239,8 +277,6 @@ void AppMessage::GetMessage(Message &msg, MsgError &qerror)
         }
 
         queueMessage[msg.GetRcv()].GetMessage(msg, qerror);
-        //std::cout << msg.GetBodyMsg().c_str() << msg.GetRcv() << msg.GetSnd() << std::endl;
-        //std::cout.flush();
 
         pthread_mutex_unlock(&mutex[msg.GetRcv()]);
     }

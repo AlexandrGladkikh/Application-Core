@@ -3,6 +3,6 @@
 
 #include "../../src/including/AppData.h"
 
-void AppCont(app::Message& msg);
+bool AppCont(app::Message& msg);
 
 #endif // APPCONT_H

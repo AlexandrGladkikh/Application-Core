@@ -5,13 +5,12 @@ namespace app {
 
 ModuleState::ModuleState()
 {
-    for(int i = 0; i< ModuleNameEnd; i++)
-        datastatus[i] = StatusWait;
+
 }
 
 ModuleState::~ModuleState()
 {
-
+    delete[] datastatus;
 }
 
 bool ModuleState::SetStatus(int name, ModuleStatus status)
@@ -27,6 +26,9 @@ bool ModuleState::SetStatus(int name, ModuleStatus status)
 void ModuleState::SetMaxModule(int maxmod)
 {
     maxModule = maxmod;
+    datastatus = new ModuleStatus[maxModule];
+    for(int i = 0; i< maxModule; i++)
+        datastatus[i] = StatusWait;
 }
 
 ModuleStatus ModuleState::GetStatus(int name)
