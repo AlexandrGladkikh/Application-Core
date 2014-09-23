@@ -260,6 +260,7 @@ bool AppSetting::LoadSetting()
 
     if (!setting)
     {
+        setting.close();
         return false;
     }
 
