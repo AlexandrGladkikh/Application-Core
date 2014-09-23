@@ -1,4 +1,5 @@
 #include "AppMessage.h"
+#include "../Wrap/WrapNet.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -148,7 +149,7 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     for(int i=4; i<valueMaxModules; i++)
         arrModules[i] = -1;
 
-    for(int i=4; i<valueMaxModules; i++)
+    for(int i=0; i<valueMaxModules; i++)
         sockNetModule[i] = -1;
 
     pthread_condattr_setpshared(&attrCond, PTHREAD_PROCESS_PRIVATE);
@@ -221,7 +222,10 @@ bool AppMessage::DeleteModule(int id)
         countModules--;
         queueMessage[id].EraseMsg();
         if (sockNetModule[id]!=-1)
+        {
+            wrap::Close(sockNetModule[id]);
             sockNetModule[id] = -1;
+        }
         return true;
     }
     else
