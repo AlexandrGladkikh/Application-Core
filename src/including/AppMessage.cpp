@@ -146,11 +146,16 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     arrModules[1] = 1;
     arrModules[2] = 1;
     arrModules[3] = 1;
-    for(int i=4; i<valueMaxModules; i++)
+    arrModules[4] = 1;
+    arrModules[5] = 1;
+    arrModules[6] = 1;
+    for(int i=7; i<valueMaxModules; i++)
         arrModules[i] = -1;
 
     for(int i=0; i<valueMaxModules; i++)
         sockNetModule[i] = -1;
+
+    sockNetModule[6] = 1;
 
     pthread_condattr_setpshared(&attrCond, PTHREAD_PROCESS_PRIVATE);
 
@@ -170,7 +175,7 @@ void AppMessage::SetThreadParam(int valueMaxModules)
 
     pthread_mutex_init(&mutexArrModules, &attrMutex);
 
-    countModules = 4;
+    countModules = 3;
 }
 
 int AppMessage::AddNewModule()

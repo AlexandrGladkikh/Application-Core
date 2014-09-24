@@ -9,13 +9,14 @@ namespace app {
 enum ModuleName
 {
     ModuleNameFirst = 0,
-    controller = 0,
-    moduleData = 1,
-    appController = 2,
-    netModule = 3,
-    ModuleNameEnd = 4,
-    UI = 5,
-    NewModule = 6,
+    UI = 0,
+    NewAppModule = 1,
+    NewNetModule = 2,
+    controller = 3,
+    moduleData = 4,
+    appController = 5,
+    netModule = 6,
+    ModuleNameEnd = 7,
     UnavailableName = -1
 };
 

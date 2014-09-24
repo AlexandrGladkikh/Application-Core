@@ -64,6 +64,11 @@ bool StartX(AppData *appData)
         return false;
 
     ////////////////////////////////////
+    rez = pthread_create(&thread, &attrObj, modules::NetModule, appData);
+    if (rez != 0)
+        return false;
+
+    ////////////////////////////////////
     std::string bodyMsg;
     bodyMsg.append(EVENTSTART);
     bodyMsg.append(SETSELFID);
@@ -75,7 +80,7 @@ bool StartX(AppData *appData)
     bodyMsg.append(DATAEND);
 
     app::Message event;
-    event.CreateMessage(bodyMsg.c_str(), app::NewModule, app::UI);
+    event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
     app::MsgError err;
 
     app::AppMessage &dataMsg = appData->GetMsg();
@@ -97,7 +102,7 @@ bool StartX(AppData *appData)
     bodyMsg.append(buf);
     bodyMsg.append(DATAEND);
 
-    event.CreateMessage(bodyMsg.c_str(), app::NewModule, app::UI);
+    event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
 
     dataMsg.AddMessage(event, err);
 
@@ -107,11 +112,6 @@ bool StartX(AppData *appData)
         return false;
     }
     ////////////////////////////////////
-    threadData.GetThread(netModule, thread);
-
-    rez = pthread_create(&thread, &attrObj, modules::NetModule, appData);
-    if (rez != 0)
-        return false;
 
     return true;
 }

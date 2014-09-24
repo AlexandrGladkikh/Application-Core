@@ -69,12 +69,15 @@ bool HandlerAppController::handler(app::Message &event)
             }
             else
             {
-                event.SetBodyMsg("close appcontroller\n");
-                event.SetRcv(app::controller);
-                event.SetSnd(app::appController);
+                if (event.GetSnd() == app::controller)
+                {
+                    event.SetBodyMsg("close appcontroller\n");
+                    event.SetRcv(app::controller);
+                    event.SetSnd(app::appController);
 
-                app::MsgError err;
-                dataMsg.AddMessage(event, err);
+                    app::MsgError err;
+                    dataMsg.AddMessage(event, err);
+                }
             }
 
             return false;
@@ -133,7 +136,7 @@ bool HandlerAppController::handler(app::Message &event)
         bodyMsg.append(buf);
         bodyMsg.append(DATAEND);
 
-        event.CreateMessage(bodyMsg.c_str(), app::NewModule, selfID);
+        event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, selfID);
         app::MsgError err;
 
         dataMsg.AddMessage(event, err);
@@ -152,7 +155,7 @@ bool HandlerAppController::handler(app::Message &event)
         bodyMsg.append(buf);
         bodyMsg.append(DATAEND);
 
-        event.CreateMessage(bodyMsg.c_str(), app::NewModule, selfID);
+        event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, selfID);
 
         dataMsg.AddMessage(event, err);
 
@@ -175,7 +178,7 @@ inline void HandlerAppController::SetSelfID(int id)
 int AppControllerInit(HandlerAppController* handler, app::AppMessage *dataMsg)
 {
     app::Message msg;
-    msg.SetRcv(app::NewModule);
+    msg.SetRcv(app::NewAppModule);
     app::MsgError err;
 
     dataMsg->GetMessage(msg, err);
