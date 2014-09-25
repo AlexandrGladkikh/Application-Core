@@ -86,11 +86,6 @@ bool StartX(AppData *appData)
     if (rez != 0)
         return false;
 
-/*        AppMessage &dataMsg = appData->GetMsg();
-        app::MsgError err;
-    app::Message event;
-    char buff[10];
-    std::string bodyMsg;*/
     ////////////////////////////////////
     bodyMsg.erase();
     bodyMsg.append(EVENTSTART);

@@ -142,12 +142,9 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     maxModules = valueMaxModules;
     statusmodule.SetMaxModule(valueMaxModules);
 
-    arrModules[0] = 1;
-    arrModules[1] = 1;
-    arrModules[2] = 1;
-    arrModules[3] = 1;
-    arrModules[4] = 1;
-    arrModules[5] = 1;
+    for(int i=0; i <= BASICMODULES; i++)
+        arrModules[i] = 1;
+
     for(int i=6; i<valueMaxModules; i++)
         arrModules[i] = -1;
 
@@ -172,13 +169,13 @@ void AppMessage::SetThreadParam(int valueMaxModules)
 
     pthread_mutex_init(&mutexArrModules, &attrMutex);
 
-    countModules = 2;
+    countModules = BASICCOUNTMODULES;
 }
 
 void AppMessage::AddNewModule(int modID)
 {
     pthread_mutex_lock(&mutexArrModules);
-    if (countModules+1 != maxModules && appClose != true)
+    if (countModules != maxModules && appClose != true)
     {
         for(int i=0; i < maxModules; i++)
         if (arrModules[i] == -1)
@@ -197,7 +194,7 @@ void AppMessage::AddNewModule(int modID)
 void AppMessage::AddNewModule(int sockPipe[2])
 {
     pthread_mutex_lock(&mutexArrModules);
-    if (countModules+1 != maxModules && appClose != true)
+    if (countModules != maxModules && appClose != true)
     {
         for(int i=0; i< maxModules; i++)
         if (arrModules[i] == -1)

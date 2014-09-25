@@ -17,7 +17,7 @@ void* NetModule(void *appData)
     app::MsgError err;
     dataMsg.GetMessage(msg, err);
 
-    //std::cout << msg.GetBodyMsg().c_str() << std::endl;
+    std::cout << msg.GetBodyMsg().c_str() << std::endl;
     std::cout.flush();
 
     msg.SetRcv(app::netModule);
@@ -26,11 +26,11 @@ void* NetModule(void *appData)
 
     read(4, buff, 10);
 
-    //std::cout << buff << std::endl;
+    std::cout << buff << std::endl;
 
     dataMsg.GetMessage(msg, err);
 
-    //std::cout << msg.GetBodyMsg().c_str() << std::endl;
+    std::cout << msg.GetBodyMsg().c_str() << std::endl;
     std::cout.flush();
 }
 ////////////////////////////////////

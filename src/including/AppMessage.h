@@ -11,6 +11,9 @@
 namespace app {
 ////////////////////////////////////
 
+#define BASICMODULES 5
+#define BASICCOUNTMODULES 2
+
     enum MsgError
     {
         ErrorNot,
