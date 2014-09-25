@@ -4,8 +4,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <iostream>
-
 namespace app {
 ////////////////////////////////////
 
@@ -286,8 +284,6 @@ void AppMessage::GetMessage(Message &msg, MsgError &qerror)
         }
 
         queueMessage[msg.GetRcv()].GetMessage(msg, qerror);
-
-        //std::cout << msg.GetRcv() << msg.GetBodyMsg().c_str() << std::endl;
 
         pthread_mutex_unlock(&mutex[msg.GetRcv()]);
     }
