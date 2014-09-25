@@ -82,9 +82,9 @@ namespace app {
         AppMessage();
         ~AppMessage();
         void SetThreadParam(int countThread);
-        int AddNewModule();
-        int AddNewModule(int* sockPipe);
-        bool DeleteModule(int id);
+        void AddNewModule(int modID);
+        void AddNewModule(int modID[2]);
+        void DeleteModule(int id);
         int GetCountModules();
 
         void AddMessage(Message msg, MsgError &qerror);

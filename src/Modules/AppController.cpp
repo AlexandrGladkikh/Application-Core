@@ -63,7 +63,8 @@ bool HandlerAppController::handler(app::Message &event)
 
         if(!bodyMsg.compare(QUIT))
         {
-            if (dataMsg.DeleteModule(selfID))
+            dataMsg.DeleteModule(selfID);
+            if (!selfID)
             {
                 return false;
             }
@@ -102,7 +103,8 @@ bool HandlerAppController::handler(app::Message &event)
 
     if(!eventStr.compare(CREATENEWAPPCONTROLLER))
     {
-        int newID = dataMsg.AddNewModule();
+        int newID;
+        dataMsg.AddNewModule(newID);
         int newNetID = atoi(bodyMsg.substr((bodyMsg.find(DATASTART)+6), bodyMsg.find(DATAEND)).c_str());
 
         pthread_attr_t attr;

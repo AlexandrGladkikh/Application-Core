@@ -188,7 +188,7 @@ bool ControllerHandler::EventHandler(int behaviorEvent, std::string param)
 
         int countModules = dataMsg->AddMessageAllModules(msg, err);
         msg.SetRcv(app::controller);
-        for (int i=0; i<countModules-1; i++)
+        for (int i=0; i<countModules; i++)
         {
             dataMsg->GetMessage(msg, err);
             switch(msg.GetSnd())
@@ -232,6 +232,7 @@ bool ControllerHandler::Handler(app::Message* msg)
     else
     {
         wrap::Log("close app...\n", LOGCONTROLLER);
+        exit(0);
         return false;
     }
 }

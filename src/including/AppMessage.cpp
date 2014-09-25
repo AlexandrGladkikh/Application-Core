@@ -4,6 +4,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <iostream>
+
 namespace app {
 ////////////////////////////////////
 
@@ -148,14 +150,11 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     arrModules[3] = 1;
     arrModules[4] = 1;
     arrModules[5] = 1;
-    arrModules[6] = 1;
-    for(int i=7; i<valueMaxModules; i++)
+    for(int i=6; i<valueMaxModules; i++)
         arrModules[i] = -1;
 
     for(int i=0; i<valueMaxModules; i++)
         sockNetModule[i] = -1;
-
-    sockNetModule[6] = 1;
 
     pthread_condattr_setpshared(&attrCond, PTHREAD_PROCESS_PRIVATE);
 
@@ -175,31 +174,32 @@ void AppMessage::SetThreadParam(int valueMaxModules)
 
     pthread_mutex_init(&mutexArrModules, &attrMutex);
 
-    countModules = 3;
+    countModules = 2;
 }
 
-int AppMessage::AddNewModule()
+void AppMessage::AddNewModule(int modID)
 {
     pthread_mutex_lock(&mutexArrModules);
-    if (countModules != maxModules && appClose != true)
+    if (countModules+1 != maxModules && appClose != true)
     {
-        for(int i=0; i< maxModules; i++)
+        for(int i=0; i < maxModules; i++)
         if (arrModules[i] == -1)
         {
             arrModules[i] = 1;
             countModules++;
-            return i;
+            modID = i;
+            break;
         }
     }
     else
-        return -1;
+        modID = -1;
     pthread_mutex_unlock(&mutexArrModules);
 }
 
-int AppMessage::AddNewModule(int* sockPipe)
+void AppMessage::AddNewModule(int sockPipe[2])
 {
     pthread_mutex_lock(&mutexArrModules);
-    if (countModules != maxModules && appClose != true)
+    if (countModules+1 != maxModules && appClose != true)
     {
         for(int i=0; i< maxModules; i++)
         if (arrModules[i] == -1)
@@ -209,16 +209,16 @@ int AppMessage::AddNewModule(int* sockPipe)
             int sock[2];
             socketpair(AF_UNIX, SOCK_STREAM, 0, sock);
             sockNetModule[i] = sock[0];
-            *sockPipe = sock[1];
-            return i;
+            sockPipe[0] = sock[1];
+            sockPipe[1] =  i;
         }
     }
     else
-        return -1;
+        sockPipe[1] = -1;
     pthread_mutex_unlock(&mutexArrModules);
 }
 
-bool AppMessage::DeleteModule(int id)
+void AppMessage::DeleteModule(int id)
 {
     pthread_mutex_lock(&mutexArrModules);
     if (appClose != true)
@@ -231,10 +231,10 @@ bool AppMessage::DeleteModule(int id)
             wrap::Close(sockNetModule[id]);
             sockNetModule[id] = -1;
         }
-        return true;
+        id = 1;
     }
     else
-        return false;
+        id = 0;
     pthread_mutex_unlock(&mutexArrModules);
 }
 
@@ -287,6 +287,8 @@ void AppMessage::GetMessage(Message &msg, MsgError &qerror)
 
         queueMessage[msg.GetRcv()].GetMessage(msg, qerror);
 
+        //std::cout << msg.GetRcv() << msg.GetBodyMsg().c_str() << std::endl;
+
         pthread_mutex_unlock(&mutex[msg.GetRcv()]);
     }
     else
@@ -308,8 +310,15 @@ int AppMessage::AddMessageAllModules(Message msg, MsgError &qerror)
             msg.SetRcv(i);
             queueMessage[i].AddMessage(msg, qerror);
 
-            if (statusmodule.GetStatus(i) == StatusWait && qerror == ErrorNot)
+            if (sockNetModule[i] != -1)
+                while (!write(sockNetModule[msg.GetRcv()], "read", 4))
+                {
+                    ;
+                }
+            else if (statusmodule.GetStatus(i) == StatusWait && qerror == ErrorNot)
+            {
                 pthread_cond_signal(&condition[i]);
+            }
 
             pthread_mutex_unlock(&mutex[i]);
         }

@@ -277,7 +277,7 @@ bool AppSetting::ResetSetting()
     settingData.SetNetProtocol(NetIPv4);
     settingData.SetDataRead(AllRead);
     settingData.SetDataWrite(AllWrite);
-    settingData.SetMaxModules(8);
+    settingData.SetMaxModules(7);
 
     std::fstream setting;
 
