@@ -20,7 +20,7 @@ void* NetModule(void *appData)
     std::cout << msg.GetBodyMsg().c_str() << std::endl;
     std::cout.flush();
 
-    msg.SetRcv(app::netModule);
+    msg.SetRcv(5);
 
     char buff[10];
 

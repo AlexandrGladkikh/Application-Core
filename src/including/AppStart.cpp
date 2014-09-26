@@ -60,7 +60,7 @@ bool StartX(AppData *appData)
     ////////////////////////////////////
     AppMessage &dataMsg = appData->GetMsg();
     int modID[2];
-    dataMsg.AddNewModule(modID);
+    dataMsg.AddNewModule(&modID[0], &modID[1]);
 
     std::string bodyMsg;
     app::Message event;
@@ -80,6 +80,12 @@ bool StartX(AppData *appData)
     event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);
     dataMsg.AddMessage(event, err);
 
+    if (err != app::ErrorNot)
+    {
+        wrap::Log("Error add message\n", APPSTART);
+        return false;
+    }
+
     threadData.GetThread(netModule, thread);
 
     rez = pthread_create(&thread, &attrObj, modules::NetModule, appData);
@@ -87,12 +93,15 @@ bool StartX(AppData *appData)
         return false;
 
     ////////////////////////////////////
+    int id;
+    dataMsg.AddNewModule(&id);
+
     bodyMsg.erase();
     bodyMsg.append(EVENTSTART);
     bodyMsg.append(SETSELFID);
     bodyMsg.append(EVENTEND);
     bodyMsg.append(DATASTART);
-    sprintf(buff, "%d", app::appController);
+    sprintf(buff, "%d", id);
     bodyMsg.append(buff);
     bodyMsg.append(DATAEND);
 
@@ -111,7 +120,7 @@ bool StartX(AppData *appData)
     bodyMsg.append(SETNETID);
     bodyMsg.append(EVENTEND);
     bodyMsg.append(DATASTART);
-    sprintf(buff, "%d", app::netModule);
+    sprintf(buff, "%d", modID[1]);
     bodyMsg.append(buff);
     bodyMsg.append(DATAEND);
 

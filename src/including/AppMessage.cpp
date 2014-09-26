@@ -145,7 +145,7 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     for(int i=0; i <= BASICMODULES; i++)
         arrModules[i] = 1;
 
-    for(int i=6; i<valueMaxModules; i++)
+    for(int i=5; i<valueMaxModules; i++)
         arrModules[i] = -1;
 
     for(int i=0; i<valueMaxModules; i++)
@@ -172,7 +172,7 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     countModules = BASICCOUNTMODULES;
 }
 
-void AppMessage::AddNewModule(int modID)
+void AppMessage::AddNewModule(int *modID)
 {
     pthread_mutex_lock(&mutexArrModules);
     if (countModules != maxModules && appClose != true)
@@ -182,16 +182,16 @@ void AppMessage::AddNewModule(int modID)
         {
             arrModules[i] = 1;
             countModules++;
-            modID = i;
+            *modID = i;
             break;
         }
     }
     else
-        modID = -1;
+        *modID = -1;
     pthread_mutex_unlock(&mutexArrModules);
 }
 
-void AppMessage::AddNewModule(int sockPipe[2])
+void AppMessage::AddNewModule(int *sockPipe, int *id)
 {
     pthread_mutex_lock(&mutexArrModules);
     if (countModules != maxModules && appClose != true)
@@ -204,8 +204,9 @@ void AppMessage::AddNewModule(int sockPipe[2])
             int sock[2];
             socketpair(AF_UNIX, SOCK_STREAM, 0, sock);
             sockNetModule[i] = sock[0];
-            sockPipe[0] = sock[1];
-            sockPipe[1] =  i;
+            *sockPipe = sock[1];
+            *id =  i;
+            break;
         }
     }
     else

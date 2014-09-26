@@ -11,8 +11,8 @@
 namespace app {
 ////////////////////////////////////
 
-#define BASICMODULES 5
-#define BASICCOUNTMODULES 2
+#define BASICMODULES 4
+#define BASICCOUNTMODULES 1
 
     enum MsgError
     {
@@ -85,8 +85,8 @@ namespace app {
         AppMessage();
         ~AppMessage();
         void SetThreadParam(int countThread);
-        void AddNewModule(int modID);
-        void AddNewModule(int modID[2]);
+        void AddNewModule(int *modID);
+        void AddNewModule(int *sockPipe, int *id);
         void DeleteModule(int id);
         int GetCountModules();
 
