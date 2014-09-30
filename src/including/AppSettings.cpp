@@ -1,6 +1,7 @@
 #include "AppSettings.h"
 #include <iostream>
 #include <fstream>
+#include <string.h>
 
 namespace app {
 ////////////////////////////////////
@@ -86,6 +87,16 @@ void SettingData::SetMaxModules(int count)
     valueMaxModules = count;
 }
 
+void SettingData::SetHost(const char *hst)
+{
+    memcpy(host, hst, strlen(hst)+1);
+}
+
+void SettingData::SetServ(const char *srv)
+{
+    memcpy(serv, srv, strlen(srv)+1);
+}
+
 DataAdd SettingData::GetDataAdd()
 {
     return dataAdd;
@@ -119,6 +130,16 @@ NetLink SettingData::GetNetLink()
 int SettingData::GetCountThread()
 {
     return valueMaxModules;
+}
+
+const char* SettingData::GetHost()
+{
+    return host;
+}
+
+const char* SettingData::GetServ()
+{
+    return serv;
 }
 
 AppSetting::AppSetting()
@@ -225,6 +246,10 @@ void SettingData::ListSetting()
     }
 
     std::cout << "count modules: " << valueMaxModules << std::endl;
+
+    std::cout << "host: " << host << std::endl;
+
+    std::cout << "port or service: " << serv << std::endl;
 }
 
 bool AppSetting::SaveSetting()
@@ -278,6 +303,8 @@ bool AppSetting::ResetSetting()
     settingData.SetDataRead(AllRead);
     settingData.SetDataWrite(AllWrite);
     settingData.SetMaxModules(7);
+    settingData.SetHost("0::0");
+    settingData.SetServ("15348");
 
     std::fstream setting;
 

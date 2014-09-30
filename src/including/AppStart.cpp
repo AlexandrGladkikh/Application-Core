@@ -4,6 +4,9 @@
 #include "../Modules/AppController.h"
 #include "../Modules/NetModule.h"
 #include "../Wrap/Log.h"
+#include "../Wrap/WrapNet.h"
+
+#include <iostream>
 
 namespace app {
 ////////////////////////////////////
@@ -59,8 +62,15 @@ bool StartX(AppData *appData)
 
     ////////////////////////////////////
     AppMessage &dataMsg = appData->GetMsg();
+    SettingData dataSttng;
+    appData->GetSttng().GetSetting(dataSttng);
     int modID[2];
     dataMsg.AddNewModule(&modID[0], &modID[1]);
+
+    socklen_t len;
+    int sockfd;
+    if ((sockfd = wrap::CreateSocket(dataSttng.GetHost(), dataSttng.GetServ(), &len)) == 0)
+        return false;
 
     std::string bodyMsg;
     app::Message event;
@@ -75,6 +85,9 @@ bool StartX(AppData *appData)
     bodyMsg.append(buff);
     bodyMsg.append("//");
     sprintf(buff, "%d", modID[1]);
+    bodyMsg.append(buff);
+    bodyMsg.append("//");
+    sprintf(buff, "%d", sockfd);
     bodyMsg.append(buff);
     bodyMsg.append(DATAEND);
     event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);

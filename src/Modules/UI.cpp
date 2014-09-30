@@ -297,10 +297,27 @@ bool UIHandler::EventHandler(int behaviorEvent, const char* param)
             }
             else if (!strcmp(param, "-setMaxThread"))
             {
-                int valueThread;
-                std::cout << "Введите максимальное количество модулей(>4)" << std::endl;
-                std::cin >> valueThread;
-                sttng.SetMaxModules(valueThread);
+                int value;
+                std::cout << "Введите максимальное количество модулей(>7)" << std::endl;
+                do
+                {
+                std::cin >> value;
+                } while(value < 7);
+                sttng.SetMaxModules(value);
+            }
+            else if (!strcmp(param, "-setServ"))
+            {
+                std::string value;
+                std::cout << "Введите порт сервера:" << std::endl;
+                std::cin >> value;
+                sttng.SetServ(value.c_str());
+            }
+            else if (!strcmp(param, "-setHost"))
+            {
+                std::string value;
+                std::cout << "Введите адрес сервера:" << std::endl;
+                std::cin >> value;
+                sttng.SetHost(value.c_str());
             }
             else
             {

@@ -14,7 +14,7 @@ int main()
 
     if (!app::StartX(&appData))
     {
-        std::cout << "Error create thread" << std::endl;
+        std::cout << "Error start" << std::endl;
         return 1;
     }
 

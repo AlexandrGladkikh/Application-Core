@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace app {
 ////////////////////////////////////
 
@@ -72,6 +74,9 @@ struct SettingData
 
     int valueMaxModules;
 
+    char host[100];
+    char serv[100];
+
     SettingData();
     ~SettingData();
 
@@ -85,6 +90,9 @@ struct SettingData
 
     void SetMaxModules(int count);
 
+    void SetHost(const char *hst);
+    void SetServ(const char *srv);
+
     DataAdd GetDataAdd();
     DataRead GetDataRead();
     DataWrite GetDataWrite();
@@ -94,6 +102,9 @@ struct SettingData
     NetLink GetNetLink();
 
     int GetCountThread();
+
+    const char* GetHost();
+    const char* GetServ();
 
     void ListSetting();
 };
