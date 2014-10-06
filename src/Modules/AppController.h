@@ -29,7 +29,6 @@ class HandlerAppController
 private:
     app::AppData *data;
     app::AppMessage &dataMsg;
-    app::AppSetting setting;
 
     int selfID;
 public:

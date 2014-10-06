@@ -22,16 +22,16 @@ namespace modules {
 
 struct NetData
 {
-    int pipe;
-    int id;
-    int socket;
-    int numberThread; // количество потоков
-    int maxUser;
-    int minUser;
-    int ratio;
-    int appControllerID; // id контроллера к которому привязан текущей модуль
-    int maxThread;
-    bool createThread;
+    int pipe;               // пробуждает поток в случае появления для него сообщения внутри программы
+    int id;                 // id потока в модуле AppMessage
+    int socket;             // прослушивающий сокет
+    int numberThread;       // количество потоков на текущем appcontroller
+    int maxUser;            // максимальное число пользователей на поток
+    int minUser;            // минимальное число пользователей на поток
+    int ratio;              // количество потоков NetModule на AppController
+    int appControllerID;    // id контроллера к которому привязан текущей модуль
+    int currentThread;      // текущее число потоков в программе
+    bool createThread;      // каждый потоко может создать только одного потомка, это флаг
 };
 
 struct UserData
@@ -47,9 +47,11 @@ class Net
 private:
     NetData* netData;
     UserData* userData;
-    int waitAuthUser;
+    int *waitAuthUser;
+    int currentNumberUser;
 public:
-    Net(NetData* netData);
+    Net(NetData* net);
+    ~Net();
     void Process();
 };
 

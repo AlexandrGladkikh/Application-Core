@@ -43,7 +43,6 @@ void* AppController(void *appData)
 HandlerAppController::HandlerAppController(app::AppData *appData) : dataMsg(appData->GetMsg())
 {
     data = appData;
-    setting = data->GetSttng();
 
     selfID = app::appController;
 }

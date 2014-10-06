@@ -91,7 +91,7 @@ bool StartX(AppData *appData)
     sprintf(buff, "%d", 1);         // количество потоков в данный момент на appcontroller
     bodyMsg.append(buff);
     bodyMsg.append("//");
-    sprintf(buff, "%d", 3);         // общее количество потоков
+    sprintf(buff, "%d", 3);         // текущее количество потоков
     bodyMsg.append(buff);
     bodyMsg.append(DATAEND);
     event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);
