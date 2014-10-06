@@ -388,7 +388,7 @@ bool DataStorage::ExecutionEvent(app::Message& event, std::string nameRcv)
     if ((bodyMsg.find(EVENTSTART, posFirst) == std::string::npos) || posSecond == std::string::npos)
         return false;
 
-    if ((bodyMsg.find(DATASTART, posSecond) == std::string::npos) || (bodyMsg.find(DATAEND, posSecond) == std::string::npos))
+    if ((bodyMsg.find(DATASTART, posSecond) == std::string::npos) || (bodyMsg.rfind(DATAEND, posSecond) == std::string::npos))
         return false;
 
     std::string strEvent = bodyMsg.substr((posFirst+17), (posSecond-(posFirst+17)));

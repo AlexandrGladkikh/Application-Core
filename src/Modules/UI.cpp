@@ -319,6 +319,27 @@ bool UIHandler::EventHandler(int behaviorEvent, const char* param)
                 std::cin >> value;
                 sttng.SetHost(value.c_str());
             }
+            else if (!strcmp(param, "-setUser"))
+            {
+                int value;
+                std::cout << "Введите число пользователей на поток:" << std::endl;
+                std::cin >> value;
+                sttng.SetUserOnThread(value);
+            }
+            else if (!strcmp(param, "-setRatio"))
+            {
+                int value;
+                std::cout << "Введите отношение число модулей AppNet к AppController(>=1):" << std::endl;
+                std::cin >> value;
+                sttng.SetRatioAppContAppNet(value);
+            }
+            else if (!strcmp(param, "-setMinUser"))
+            {
+                int value;
+                std::cout << "Введите минимальное число пользователей на поток:" << std::endl;
+                std::cin >> value;
+                sttng.SetMinUserOnThread(value);
+            }
             else
             {
                 std::cout << ">incorrect param" << std::endl;

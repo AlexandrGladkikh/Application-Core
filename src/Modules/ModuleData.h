@@ -13,16 +13,16 @@ namespace modules {
 
 #define LOGMODULEDATA "logmoduledata.txt"
 
-#define NAMERCVSTART "[nameRcv]"
-#define NAMERCVEND "[/nameRcv]"
-#define NAMESNDSTART "[nameSnd]"
-#define NAMESNDEND "[/nameSnd]"
-#define EVENTSTART "[event]"
-#define EVENTEND "[/event]"
-#define DATASTART "[data]"
-#define DATAEND "[/data]"
-#define IDNODESTART "[idNode]"
-#define IDNODEEND "[/idNode]"
+#define NAMERCVSTART "<nameRcv>"
+#define NAMERCVEND "</nameRcv>"
+#define NAMESNDSTART "<nameSnd>"
+#define NAMESNDEND "</nameSnd>"
+#define EVENTSTART "<event>"
+#define EVENTEND "</event>"
+#define DATASTART "<data>"
+#define DATAEND "</data>"
+#define IDNODESTART "<idNode>"
+#define IDNODEEND "</idNode>"
 
 #define ADDDATA "add"
 #define READDATA "read"
@@ -34,11 +34,11 @@ namespace modules {
 #define QUIT "quit"
 
 /* формат сообщения для хранилища
- * [nameSnd]Zack[/nameSnd][event]add[/event][data]good job[/data]
+ * <nameSnd>Zack</nameSnd><event>add</event><data>good job</data>
  * вид хранимых данных
- * [nameSnd]Zack[/nameSnd][data]good job[/data]
+ * <nameSnd>Zack</nameSnd><data>good job</data>
  * для разделения данных используется //
- * [nameSnd]Zack[/nameSnd][data]good job[/data]//[nameSnd]Zack[/nameSnd][data]bad job[/data]
+ * <nameSnd>Zack</nameSnd><data>good job</data>//<nameSnd>Zack</nameSnd><data>bad job</data}
  */
 
 struct DataStorage

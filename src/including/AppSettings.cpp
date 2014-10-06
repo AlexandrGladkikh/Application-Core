@@ -97,6 +97,22 @@ void SettingData::SetServ(const char *srv)
     memcpy(serv, srv, strlen(srv)+1);
 }
 
+void SettingData::SetUserOnThread(int val)
+{
+    userOnThread = val;
+}
+
+void SettingData::SetMinUserOnThread(int val)
+{
+    minUserOnThread = val;
+}
+
+
+void SettingData::SetRatioAppContAppNet(int val)
+{
+    ratioAppContAppNet = val;
+}
+
 DataAdd SettingData::GetDataAdd()
 {
     return dataAdd;
@@ -127,7 +143,7 @@ NetLink SettingData::GetNetLink()
     return netLink;
 }
 
-int SettingData::GetCountThread()
+int SettingData::GetMaxThread()
 {
     return valueMaxModules;
 }
@@ -140,6 +156,21 @@ const char* SettingData::GetHost()
 const char* SettingData::GetServ()
 {
     return serv;
+}
+
+int SettingData::GetUserOnThread()
+{
+    return userOnThread;
+}
+
+int SettingData::GetMinUserOnThread()
+{
+    return minUserOnThread;
+}
+
+int SettingData::GetRatioAppContAppNet()
+{
+    return ratioAppContAppNet;
 }
 
 AppSetting::AppSetting()
@@ -245,11 +276,17 @@ void SettingData::ListSetting()
     break;
     }
 
-    std::cout << "count modules: " << valueMaxModules << std::endl;
+    std::cout << "max modules: " << valueMaxModules << std::endl;
 
     std::cout << "host: " << host << std::endl;
 
     std::cout << "port or service: " << serv << std::endl;
+
+    std::cout << "user on thread: " << userOnThread << std::endl;
+
+    std::cout << "min user on thread: " << minUserOnThread << std::endl;
+
+    std::cout << "ratio AppController and AppNet: " << ratioAppContAppNet << std::endl;
 }
 
 bool AppSetting::SaveSetting()
@@ -305,6 +342,9 @@ bool AppSetting::ResetSetting()
     settingData.SetMaxModules(7);
     settingData.SetHost("0::0");
     settingData.SetServ("15348");
+    settingData.SetRatioAppContAppNet(1);
+    settingData.SetUserOnThread(16);
+    settingData.SetMinUserOnThread(8);
 
     std::fstream setting;
 

@@ -74,6 +74,10 @@ struct SettingData
 
     int valueMaxModules;
 
+    int userOnThread;
+    int minUserOnThread;
+    int ratioAppContAppNet;
+
     char host[100];
     char serv[100];
 
@@ -93,6 +97,10 @@ struct SettingData
     void SetHost(const char *hst);
     void SetServ(const char *srv);
 
+    void SetUserOnThread(int val);
+    void SetMinUserOnThread(int val);
+    void SetRatioAppContAppNet(int val);
+
     DataAdd GetDataAdd();
     DataRead GetDataRead();
     DataWrite GetDataWrite();
@@ -101,10 +109,14 @@ struct SettingData
     NetProtocol GetNetprotocol();
     NetLink GetNetLink();
 
-    int GetCountThread();
+    int GetMaxThread();
 
     const char* GetHost();
     const char* GetServ();
+
+    int GetUserOnThread();
+    int GetMinUserOnThread();
+    int GetRatioAppContAppNet();
 
     void ListSetting();
 };

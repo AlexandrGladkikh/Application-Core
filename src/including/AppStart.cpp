@@ -6,8 +6,6 @@
 #include "../Wrap/Log.h"
 #include "../Wrap/WrapNet.h"
 
-#include <iostream>
-
 namespace app {
 ////////////////////////////////////
 
@@ -81,13 +79,19 @@ bool StartX(AppData *appData)
     bodyMsg.append(EVENTEND);
     bodyMsg.append(DATASTART);
     char buff[10];
-    sprintf(buff, "%d", modID[0]);
+    sprintf(buff, "%d", modID[0]);  // pipe для ожидания сообщения в select
     bodyMsg.append(buff);
     bodyMsg.append("//");
-    sprintf(buff, "%d", modID[1]);
+    sprintf(buff, "%d", modID[1]);  // id потока по которому будут запрашиваться сообщения в appmessage
     bodyMsg.append(buff);
     bodyMsg.append("//");
-    sprintf(buff, "%d", sockfd);
+    sprintf(buff, "%d", sockfd);    // прослушивающий сокет
+    bodyMsg.append(buff);
+    bodyMsg.append("//");
+    sprintf(buff, "%d", 1);         // количество потоков в данный момент на appcontroller
+    bodyMsg.append(buff);
+    bodyMsg.append("//");
+    sprintf(buff, "%d", 3);         // общее количество потоков
     bodyMsg.append(buff);
     bodyMsg.append(DATAEND);
     event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);

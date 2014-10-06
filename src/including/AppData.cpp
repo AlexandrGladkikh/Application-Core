@@ -19,14 +19,14 @@ bool AppDataInit(AppData &appData)
    {
        SettingData sttng;
        appData.setting.GetSetting(sttng);
-       appData.message.SetThreadParam(sttng.GetCountThread());
+       appData.message.SetThreadParam(sttng.GetMaxThread());
        return true;
    }
    else if (appData.setting.ResetSetting())
    {
        SettingData sttng;
        appData.setting.GetSetting(sttng);
-       appData.message.SetThreadParam(sttng.GetCountThread());
+       appData.message.SetThreadParam(sttng.GetMaxThread());
        return true;
    }
 
