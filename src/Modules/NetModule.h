@@ -9,16 +9,18 @@
 namespace modules {
 ////////////////////////////////////
 
-#define NAMERCVSTART "<nameRcv>"
-#define NAMERCVEND "</nameRcv>"
-#define NAMESNDSTART "<nameSnd>"
-#define NAMESNDEND "</nameSnd>"
-#define EVENTSTART "<event>"
-#define EVENTEND "</event>"
-#define DATASTART "<data>"
-#define DATAEND "</data>"
-#define IDNODESTART "<idNode>"
-#define IDNODEEND "</idNode>"
+#define MSGSTART        "<message>"
+#define MSGEND          "</message>"
+#define NAMERCVSTART    "<nameRcv>"
+#define NAMERCVEND      "</nameRcv>"
+#define NAMESNDSTART    "<nameSnd>"
+#define NAMESNDEND      "</nameSnd>"
+#define EVENTSTART      "<event>"
+#define EVENTEND        "</event>"
+#define DATASTART       "<data>"
+#define DATAEND         "</data>"
+#define IDNODESTART     "<idNode>"
+#define IDNODEEND       "</idNode>"
 
 struct NetData
 {
@@ -58,6 +60,8 @@ public:
 void* NetModule(void *appdata);
 
 void InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng);
+
+bool CheckRequest(std::string bodyMsg);
 
 ////////////////////////////////////
 }
