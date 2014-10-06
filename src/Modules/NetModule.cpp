@@ -86,55 +86,55 @@ void InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
 
 bool CheckRequest(std::string bodyMsg)
 {
-    size_t start;
-    size_t end;
-    size_t previous;
-    size_t second;
+    size_t start1;
+    size_t end1;
+    size_t start2;
+    size_t end2;
 
-    start = bodyMsg.find(DATASTART);
-    end = bodyMsg.rfind(DATAEND);
+    start1 = bodyMsg.find(DATASTART);
+    end1 = bodyMsg.rfind(DATAEND);
 
-    if(start != std::string::npos && end != std::string::npos)
-        bodyMsg.erase(start+6, end-start-6);
+    if(start1 != std::string::npos && end1 != std::string::npos)
+        bodyMsg.erase(start1+6, end1-start1-6);
     else
         return false;
 
     //<message><nameRcv>Onito</nameRcv><nameSnd>Kira</nameSnd><event>add</event><data>good job!</data><idNode>5</idNode></message>
 
-    previous = bodyMsg.find(MSGSTART);
-    second = bodyMsg.find(MSGEND, previous);
+    start2 = bodyMsg.find(MSGSTART);
+    end2 = bodyMsg.find(MSGEND, start2);
 
-    if (previous != bodyMsg.rfind(MSGSTART) || previous != 0 || previous == std::string::npos || second == std::string::npos || (second+10) != bodyMsg.length())
+    if (start2 != bodyMsg.rfind(MSGSTART) || start2 != 0 || start2 == std::string::npos || end2 == std::string::npos || (end2+10) != bodyMsg.length())
         return false;
 
-    start = bodyMsg.find(NAMERCVSTART, previous+9);
-    end = bodyMsg.find(NAMERCVEND, start);
+    start1 = bodyMsg.find(NAMERCVSTART, start2+9);
+    end1 = bodyMsg.find(NAMERCVEND, start1);
 
-    if (start != bodyMsg.rfind(NAMERCVSTART) || start == std::string::npos || end == std::string::npos || end != bodyMsg.rfind(NAMERCVEND))
+    if (start2+9 != bodyMsg.rfind(NAMERCVSTART) || start1 == std::string::npos || end1 == std::string::npos || end1 != bodyMsg.rfind(NAMERCVEND))
         return false;
 
-    previous = bodyMsg.find(NAMESNDSTART, end+10);
-    second = bodyMsg.find(NAMESNDEND, previous);
+    start2 = bodyMsg.find(NAMESNDSTART, end1+10);
+    end2 = bodyMsg.find(NAMESNDEND, start2);
 
-    if (previous != bodyMsg.rfind(NAMESNDSTART) || previous == std::string::npos || second == std::string::npos || second != bodyMsg.rfind(NAMESNDEND))
+    if (end1+10 != bodyMsg.rfind(NAMESNDSTART) || start2 == std::string::npos || end2 == std::string::npos || end2 != bodyMsg.rfind(NAMESNDEND))
         return false;
 
-    start = bodyMsg.find(EVENTSTART, second+10);
-    end = bodyMsg.find(EVENTEND, start);
+    start1 = bodyMsg.find(EVENTSTART, end2+10);
+    end1 = bodyMsg.find(EVENTEND, start1);
 
-    if (start != bodyMsg.rfind(EVENTSTART) || start == std::string::npos || end == std::string::npos || end != bodyMsg.rfind(EVENTEND))
+    if (end2+10 != bodyMsg.rfind(EVENTSTART) || start1 == std::string::npos || end1 == std::string::npos || end1 != bodyMsg.rfind(EVENTEND))
         return false;
 
-    previous = bodyMsg.find(DATASTART, end+8);
-    second = bodyMsg.find(DATAEND, previous);
+    start2 = bodyMsg.find(DATASTART, end1+8);
+    end2 = bodyMsg.find(DATAEND, start2);
 
-    if (previous != bodyMsg.rfind(DATASTART) || previous == std::string::npos || second == std::string::npos || second != bodyMsg.rfind(DATAEND))
+    if (end1+8 != bodyMsg.rfind(DATASTART) || start2 == std::string::npos || end2 == std::string::npos || end2 != bodyMsg.rfind(DATAEND))
         return false;
 
-    start = bodyMsg.find(IDNODESTART, second+7);
-    end = bodyMsg.find(IDNODEEND, start);
+    start1 = bodyMsg.find(IDNODESTART, end2+7);
+    end1 = bodyMsg.find(IDNODEEND, start1);
 
-    if (start != bodyMsg.rfind(IDNODESTART) || start == std::string::npos || end == std::string::npos || end != bodyMsg.rfind(IDNODEEND))
+    if (end2+7 != bodyMsg.rfind(IDNODESTART) || start1 == std::string::npos || end1 == std::string::npos || end1 != bodyMsg.rfind(IDNODEEND) || end1+19 != bodyMsg.length())
         return false;
 
     return true;
