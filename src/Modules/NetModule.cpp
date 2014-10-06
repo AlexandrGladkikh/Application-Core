@@ -18,9 +18,10 @@ void* NetModule(void *appData)
     InitNetModule(netData, dataMsg, dataSttng);
 }
 
-Net::Net(NetData* net)
+Net::Net(NetData* net, app::AppData *data)
 {
     netData = net;
+    appData = data;
 
     userData = new UserData[netData->maxUser];
     waitAuthUser = new int[netData->maxUser];

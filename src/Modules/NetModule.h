@@ -49,10 +49,12 @@ class Net
 private:
     NetData* netData;
     UserData* userData;
+    app::AppData* appData;
+
     int *waitAuthUser;
     int currentNumberUser;
 public:
-    Net(NetData* net);
+    Net(NetData* net, app::AppData* data);
     ~Net();
     void Process();
 };
