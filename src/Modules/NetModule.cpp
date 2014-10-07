@@ -1,5 +1,10 @@
 #include <unistd.h>
 #include "NetModule.h"
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include "../Wrap/WrapNet.h"
 
 #include <iostream>
 
@@ -16,6 +21,10 @@ void* NetModule(void *appData)
     NetData netData;
 
     InitNetModule(netData, dataMsg, dataSttng);
+
+    Net net(&netData, data);
+
+    net.Process();
 }
 
 Net::Net(NetData* net, app::AppData *data)
@@ -23,15 +32,92 @@ Net::Net(NetData* net, app::AppData *data)
     netData = net;
     appData = data;
 
-    userData = new UserData[netData->maxUser];
+    userData = new UserData[netData->maxUser];    
     waitAuthUser = new int[netData->maxUser];
+
+    for(int i=0; i<netData->maxUser; i++)
+    {
+        userData[i].sock = -1;
+        waitAuthUser[i] = -1;
+    }
     currentNumberUser = 0;
+    maxIdUser = 0;
+    maxWaitUser = 0;
 }
 
 Net::~Net()
 {
     delete[] userData;
     delete[] waitAuthUser;
+}
+
+void Net::Process()
+{
+    sockaddr cliaddr;
+    socklen_t clilen;
+    fd_set rset;
+    int connfd;
+    int nReady;
+    int nRcv;
+    int maxfd;
+
+    FD_ZERO(&rset);
+    FD_SET(netData->socket, &rset);
+    FD_SET(netData->pipe, &rset);
+    maxfd = std::max(netData->socket, netData->pipe)+1;
+    while(1)
+    {
+        nReady = wrap::Select(maxfd, &rset, NULL, NULL, NULL);
+        if (nReady == -1 && errno == EINTR)
+        {
+            FD_ZERO(&rset);
+            FD_SET(netData->socket, &rset);
+            FD_SET(netData->pipe, &rset);
+            for (int i=0; i<maxIdUser; i++)
+            {
+                if (userData[i].sock != -1)
+                    FD_SET(userData[i].sock, &rset);
+                if (waitAuthUser[i] != -1)
+                    FD_SET(waitAuthUser[i], &rset);
+            }
+
+            continue;
+        }
+
+        if (FD_ISSET(netData->socket, &rset))
+        {
+            clilen = sizeof(cliaddr);
+            while((connfd = accept(netData->socket, &cliaddr, &clilen) == -1))
+                if (errno == EINTR)
+                    continue;
+
+            if (connfd != -1 && (errno != EAGAIN || errno != EWOULDBLOCK || errno != ECONNABORTED))
+            {
+                int i;
+                for (i=0; i<netData->maxUser; i++)
+                {
+                    if (waitAuthUser[i] == -1)
+                        waitAuthUser[i] = connfd;
+                }
+
+                if (i == netData->maxUser)
+                {
+                    while (!wrap::Close(connfd) && errno == EINTR);
+                }
+                else
+                {
+                    FD_SET(connfd, &rset);
+                    if (i > maxWaitUser)
+                        maxWaitUser = i;
+                    if (connfd > maxfd)
+                        maxfd = connfd;
+                }
+
+                if (--nReady<=0)
+                    continue;
+            }
+        }
+    }
 }
 
 void InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng)

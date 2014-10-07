@@ -428,6 +428,14 @@ void WaitEvent(EventData* eventData)
     FD_SET(eventData->GetSocketPipe1(), eventData->GetFdSet());
     while ((nReady = wrap::Select(eventData->GetMaxFdp(), eventData->GetFdSet(), NULL, NULL, NULL)))
     {
+        if (nReady == -1 && errno == EINTR)
+        {
+            FD_ZERO(eventData->GetFdSet());
+            FD_SET(fileno(stdin), eventData->GetFdSet());
+            FD_SET(eventData->GetSocketPipe1(), eventData->GetFdSet());
+            continue;
+        }
+
         if (FD_ISSET(fileno(stdin), eventData->GetFdSet()))
         {
             std::cin >> eventData->GetEvent();
@@ -440,13 +448,6 @@ void WaitEvent(EventData* eventData)
 
             eventData->GetEvent()[nRcv] = '\0';
             break;
-        }
-
-        if (errno == EINTR)
-        {
-            FD_SET(fileno(stdin), eventData->GetFdSet());
-            FD_SET(eventData->GetSocketPipe1(), eventData->GetFdSet());
-            continue;
         }
     }
 }

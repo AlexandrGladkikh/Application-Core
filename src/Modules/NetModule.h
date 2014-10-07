@@ -38,10 +38,12 @@ struct NetData
 
 struct UserData
 {
-   std::string name;
-   int sock;
-   bool linkData;
-   char buf[1000];
+    std::string name;
+    int sock;
+    bool linkData;
+    std::string rcvBuf;
+    std::string sndBuf;
+    std::string size;
 };
 
 class Net
@@ -51,8 +53,12 @@ private:
     UserData* userData;
     app::AppData* appData;
 
+    char buf[1000];
+
     int *waitAuthUser;
     int currentNumberUser;
+    int maxIdUser;
+    int maxWaitUser;
 public:
     Net(NetData* net, app::AppData* data);
     ~Net();
