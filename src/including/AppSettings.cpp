@@ -102,11 +102,6 @@ void SettingData::SetUserOnThread(int val)
     userOnThread = val;
 }
 
-void SettingData::SetMinUserOnThread(int val)
-{
-    minUserOnThread = val;
-}
-
 
 void SettingData::SetRatioAppContAppNet(int val)
 {
@@ -161,11 +156,6 @@ const char* SettingData::GetServ()
 int SettingData::GetUserOnThread()
 {
     return userOnThread;
-}
-
-int SettingData::GetMinUserOnThread()
-{
-    return minUserOnThread;
 }
 
 int SettingData::GetRatioAppContAppNet()
@@ -284,8 +274,6 @@ void SettingData::ListSetting()
 
     std::cout << "user on thread: " << userOnThread << std::endl;
 
-    std::cout << "min user on thread: " << minUserOnThread << std::endl;
-
     std::cout << "ratio AppController and AppNet: " << ratioAppContAppNet << std::endl;
 }
 
@@ -344,7 +332,6 @@ bool AppSetting::ResetSetting()
     settingData.SetServ("15348");
     settingData.SetRatioAppContAppNet(1);
     settingData.SetUserOnThread(16);
-    settingData.SetMinUserOnThread(8);
 
     std::fstream setting;
 

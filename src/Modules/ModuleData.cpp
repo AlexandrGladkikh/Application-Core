@@ -65,7 +65,7 @@ bool DataHandler::Handler(app::Message& event)
         ////////////////////////////////////////
         if (!bodyMsg.compare(QUIT))
         {
-            event.SetBodyMsg("close moduleData");
+            event.SetBodyMsg("close moduleData\n");
             event.SetRcv(event.GetSnd());
             event.SetSnd(app::moduleData);
 

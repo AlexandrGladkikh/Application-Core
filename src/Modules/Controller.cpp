@@ -191,12 +191,7 @@ bool ControllerHandler::EventHandler(int behaviorEvent, std::string param)
         for (int i=0; i<countModules; i++)
         {
             dataMsg->GetMessage(msg, err);
-            switch(msg.GetSnd())
-            {
-            case app::moduleData : wrap::Log("moduleData Close\n", LOGCONTROLLER); break;
-            case app::appController : wrap::Log("appController Close\n", LOGCONTROLLER); break;
-            case app::netModule : wrap::Log("netModule\n", LOGCONTROLLER); break;
-            }
+            wrap::Log(msg.GetBodyMsg().c_str(), LOGCONTROLLER);
         }
         return false;
     }

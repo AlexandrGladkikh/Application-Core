@@ -239,6 +239,11 @@ int AppMessage::GetCountModules()
     return countModules;
 }
 
+int AppMessage::GetMaxModules()
+{
+    return maxModules;
+}
+
 void AppMessage::AddMessage(Message msg,  MsgError &qerror)
 {
     if( ModuleNameFirst <= msg.GetRcv() && msg.GetRcv() < maxModules)

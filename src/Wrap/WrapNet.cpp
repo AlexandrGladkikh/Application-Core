@@ -6,8 +6,6 @@
 #include <netdb.h>
 #include <fcntl.h>
 
-#include <iostream>
-
 namespace wrap {
 ////////////////////////////////////
 
@@ -42,6 +40,9 @@ int CreateSocket(const char *host, const char *serv, socklen_t *addrlenp)
             continue;		/* error, try next one */
 
         if (!Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))
+            return -1;
+
+        if (!Setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)))
             return -1;
 
         if ((val = Fcntl(listenfd, F_GETFL, 0)) == -1)
@@ -82,10 +83,14 @@ bool Listen(int fd, int backlog)
 
         /*4can override 2nd argument with environment variable */
     if ( (ptr = getenv("LISTENQ")) != NULL)
+    {
         backlog = atoi(ptr);
+    }
 
     if (listen(fd, backlog) < 0)
+    {
         return false;
+    }
     return true;
 }
 
@@ -103,6 +108,16 @@ bool Close(int fd)
     if (close(fd) == -1)
         return false;
     return true;
+}
+
+int Poll(struct pollfd *fdarray, unsigned long nfds, int timeout)
+{
+    int		n;
+
+    if ( (n = poll(fdarray, nfds, timeout)) < 0)
+        return -1;
+
+    return(n);
 }
 
 ////////////////////////////////////

@@ -5,6 +5,7 @@
 
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/poll.h>
 #include <string.h>
 
 namespace wrap {
@@ -14,7 +15,7 @@ namespace wrap {
 #define bzero(ptr, n)   memset(ptr, 0, n)
 #endif
 
-#define LISTENQ 5
+#define LISTENQ 15000
 
 int Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
 
@@ -27,6 +28,8 @@ bool Listen(int fd, int backlog);
 int Fcntl(int fd, int cmd, int arg);
 
 bool Close(int fd);
+
+int Poll(pollfd *fdarray, unsigned long nfds, int timeout);
 
 ////////////////////////////////////
 }

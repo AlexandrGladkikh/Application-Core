@@ -4,7 +4,10 @@
 #pragma once
 
 #include <string>
+#include <sys/poll.h>
+#include <vector>
 #include "../including/AppData.h"
+#include <unordered_map>
 
 namespace modules {
 ////////////////////////////////////
@@ -22,28 +25,66 @@ namespace modules {
 #define IDNODESTART     "<idNode>"
 #define IDNODEEND       "</idNode>"
 
+#define QUIT "quit"
+
 struct NetData
 {
-    int pipe;               // пробуждает поток в случае появления для него сообщения внутри программы
-    int id;                 // id потока в модуле AppMessage
-    int socket;             // прослушивающий сокет
+    int pipe;               // пробуждает поток в случае появления для него сообщения внутри программы  //
+    int id;                 // id потока в модуле AppMessage                                            //
+    int socket;             // прослушивающий сокет                                                     //
     int numberThread;       // количество потоков на текущем appcontroller
-    int maxUser;            // максимальное число пользователей на поток
-    int minUser;            // минимальное число пользователей на поток
-    int ratio;              // количество потоков NetModule на AppController
-    int appControllerID;    // id контроллера к которому привязан текущей модуль
-    int currentThread;      // текущее число потоков в программе
-    bool createThread;      // каждый потоко может создать только одного потомка, это флаг
+    int maxUser;            // максимальное число пользователей на поток                                //
+    int ratio;              // соотношение количества потоков NetModule на AppController                //
+    int appControllerId;    // id контроллера к которому привязан текущей модуль                        //
+    bool createThread;      // каждый поток может создать только одного потомка, это флаг
+};
+
+struct LinkDataUser
+{
+    std::string name;
+    int node;
+};
+
+struct LinkDataRoom
+{
+    std::vector<LinkDataUser> LinkUser;
 };
 
 struct UserData
 {
     std::string name;
-    int sock;
-    bool linkData;
+
     std::string rcvBuf;
     std::string sndBuf;
-    std::string size;
+
+    std::vector<LinkDataUser> LinkUser;
+    LinkDataRoom* LinkRoom;
+
+    int appControllerId;
+
+    int size;
+};
+
+struct AppContData
+{
+    int countUser;
+    int appContID;
+};
+
+struct ArrAppCont
+{
+    int countAppCont;
+    int maxUserOnAppCont;
+
+    AppContData* data;
+
+    ArrAppCont();
+
+    void ArrInit(int ratio, int maxUser);
+
+    int GetAppContID();
+    bool CheckFreeSpace();
+    void AddNewAppCont(int appID);
 };
 
 class Net
@@ -53,12 +94,17 @@ private:
     UserData* userData;
     app::AppData* appData;
 
+    pollfd *client;
+    app::AppMessage &appMsg;
+    std::unordered_map<std::string, int> usr;
+
+    ArrAppCont appContData;
+
     char buf[1000];
 
-    int *waitAuthUser;
     int currentNumberUser;
-    int maxIdUser;
-    int maxWaitUser;
+
+    void Handler();
 public:
     Net(NetData* net, app::AppData* data);
     ~Net();
@@ -70,6 +116,8 @@ void* NetModule(void *appdata);
 void InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng);
 
 bool CheckRequest(std::string bodyMsg);
+
+
 
 ////////////////////////////////////
 }

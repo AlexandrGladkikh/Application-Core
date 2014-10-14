@@ -89,6 +89,7 @@ namespace app {
         void AddNewModule(int *sockPipe, int *id);
         void DeleteModule(int id);
         int GetCountModules();
+        int GetMaxModules();
 
         void AddMessage(Message msg, MsgError &qerror);
         void GetMessage(Message &msg, MsgError &qerror);
