@@ -75,6 +75,7 @@ struct ArrAppCont
 {
     int countAppCont;
     int maxUserOnAppCont;
+    int availableSpace;
 
     AppContData* data;
 
@@ -103,6 +104,7 @@ private:
     char buf[1000];
 
     int currentNumberUser;
+    int currentAppCont;
 
     void Handler();
 public:

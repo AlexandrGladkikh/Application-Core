@@ -38,6 +38,7 @@ Net::Net(NetData* net, app::AppData *data) : appMsg(data->GetMsg())
     appContData.AddNewAppCont(netData->appControllerId);
 
     currentNumberUser = 0;
+    currentAppCont = 1;
 }
 
 Net::~Net()
@@ -70,6 +71,7 @@ void Net::Process()
 
         if (client[0].revents & POLLRDNORM)
         {
+            client[0].revents = -1;
             clilen = sizeof(cliaddr);
             while((connfd = accept(netData->socket, &cliaddr, &clilen) == -1))
                 if (errno == EINTR)
@@ -124,8 +126,15 @@ void Net::Process()
                         maxId = i;
                 }
 
-                if (++currentNumberUser >= netData->maxUser)
+                ++currentNumberUser;
+                if (currentNumberUser >= netData->maxUser)
+                {
                     client[0].fd = -1;
+                }
+                else if (currentNumberUser >= appContData.availableSpace)
+                {
+                    client[0].fd = -1;
+                }
             }
 
             if (--nReady<=0)
@@ -144,6 +153,7 @@ void Net::Process()
 
         if (client[1].revents & POLLRDNORM)
         {
+            client[1].revents = -1;
             Handler();
         }
     }
@@ -278,6 +288,8 @@ ArrAppCont::ArrAppCont()
 
 void ArrAppCont::ArrInit(int ratio, int maxUser)
 {
+    availableSpace = 0;
+
     if (ratio<0)
     {
         countAppCont = (-1)*ratio;
@@ -306,6 +318,7 @@ void ArrAppCont::AddNewAppCont(int appID)
         if (data[i].appContID == -1)
         {
             data[i].appContID = appID;
+            availableSpace += maxUserOnAppCont;
             break;
         }
     }
@@ -326,13 +339,10 @@ int ArrAppCont::GetAppContID()
 
 bool ArrAppCont::CheckFreeSpace()
 {
-    for (int i=0; i<countAppCont; i++)
-    {
-        if (data[i].countUser < maxUserOnAppCont && data[i].appContID != -1)
-            return true;
-    }
-
-    return false;
+    if (availableSpace != 0)
+        return true;
+    else
+        return false;
 }
 
 ////////////////////////////////////
