@@ -10,6 +10,7 @@ namespace modules {
 ////////////////////////////////////
 
 #define LOGCONTROLLER "logcontroller.txt"
+#define BASICMODULES 4
 
 enum Event
 {

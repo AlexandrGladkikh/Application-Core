@@ -188,7 +188,7 @@ bool ControllerHandler::EventHandler(int behaviorEvent, std::string param)
 
         int countModules = dataMsg->AddMessageAllModules(msg, err);
         msg.SetRcv(app::controller);
-        for (int i=0; i<countModules; i++)
+        for (int i=0; i<countModules-BASICMODULES; i++)
         {
             dataMsg->GetMessage(msg, err);
             wrap::Log(msg.GetBodyMsg().c_str(), LOGCONTROLLER);
@@ -202,7 +202,10 @@ bool ControllerHandler::EventHandler(int behaviorEvent, std::string param)
     }
     else if (behavior[behaviorEvent].TestSetEvent(SHOWDATA))
     {
-        write(linkUI->GetLink(), param.c_str(), param.length());
+        while (write(linkUI->GetLink(), param.c_str(), param.length()))
+        {
+            ;
+        }
         return true;
     }
     return true;

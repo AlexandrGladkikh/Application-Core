@@ -58,6 +58,8 @@ struct UserData
     std::string sndBuf;
 
     std::vector<LinkDataUser> LinkUser;
+
+    bool connectRoom;
     LinkDataRoom* LinkRoom;
 
     int appControllerId;

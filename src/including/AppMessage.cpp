@@ -4,6 +4,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <iostream>
+
 namespace app {
 ////////////////////////////////////
 
@@ -142,10 +144,10 @@ void AppMessage::SetThreadParam(int valueMaxModules)
     maxModules = valueMaxModules;
     statusmodule.SetMaxModule(valueMaxModules);
 
-    for(int i=0; i <= BASICMODULES; i++)
+    for(int i=0; i < BASICMODULES; i++)
         arrModules[i] = 1;
 
-    for(int i=5; i<valueMaxModules; i++)
+    for(int i=BASICMODULES; i<valueMaxModules; i++)
         arrModules[i] = -1;
 
     for(int i=0; i<valueMaxModules; i++)
@@ -169,13 +171,13 @@ void AppMessage::SetThreadParam(int valueMaxModules)
 
     pthread_mutex_init(&mutexArrModules, &attrMutex);
 
-    countModules = BASICCOUNTMODULES;
+    countModules = BASICMODULES;
 }
 
 void AppMessage::AddNewModule(int *modID)
 {
     pthread_mutex_lock(&mutexArrModules);
-    if (countModules != maxModules && appClose != true)
+    if (countModules < maxModules && appClose != true)
     {
         for(int i=0; i < maxModules; i++)
         if (arrModules[i] == -1)
@@ -194,9 +196,9 @@ void AppMessage::AddNewModule(int *modID)
 void AppMessage::AddNewModule(int *sockPipe, int *id)
 {
     pthread_mutex_lock(&mutexArrModules);
-    if (countModules != maxModules && appClose != true)
+    if (countModules < maxModules && appClose != true)
     {
-        for(int i=0; i< maxModules; i++)
+        for(int i=0; i < maxModules; i++)
         if (arrModules[i] == -1)
         {
             arrModules[i] = 1;
@@ -210,7 +212,9 @@ void AppMessage::AddNewModule(int *sockPipe, int *id)
         }
     }
     else
+    {
         sockPipe[1] = -1;
+    }
     pthread_mutex_unlock(&mutexArrModules);
 }
 
@@ -252,15 +256,15 @@ void AppMessage::AddMessage(Message msg,  MsgError &qerror)
 
         queueMessage[msg.GetRcv()].AddMessage(msg, qerror);
 
-        if (statusmodule.GetStatus(msg.GetRcv()) == StatusWait && qerror == ErrorNot && sockNetModule[msg.GetRcv()] == -1)
-            pthread_cond_signal(&condition[msg.GetRcv()]);
-        else
+        if (sockNetModule[msg.GetRcv()] != -1)
         {
             while (!write(sockNetModule[msg.GetRcv()], "read", 4))
             {
                 ;
             }
         }
+        else if (statusmodule.GetStatus(msg.GetRcv()) == StatusWait && qerror == ErrorNot)
+            pthread_cond_signal(&condition[msg.GetRcv()]);
 
         pthread_mutex_unlock(&mutex[msg.GetRcv()]);
     }

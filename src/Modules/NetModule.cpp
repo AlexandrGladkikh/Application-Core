@@ -22,6 +22,11 @@ void* NetModule(void *appData)
 
     InitNetModule(netData, dataMsg, dataSttng);
 
+    int modID[2];
+    dataMsg.AddNewModule(&modID[0], &modID[1]);
+
+    std::cout << modID[0] << modID[1] << std::endl;
+
     Net net(&netData, data);
 
     net.Process();
@@ -144,7 +149,7 @@ void Net::Process()
         /*
          *возможные события присылаемые внутри программы
          *1) Добавить пользователя( принять аутентификационные данные)
-         *2) Удалить пользователя
+         * //2) Удалить пользователя
          *3) Отвергнуть аутентификационные данные
          *4) Переслать указанному пользователю данные
          *5) Добавить данные LinkUser или LinkRoom (Два разных события) указанному пользователю
