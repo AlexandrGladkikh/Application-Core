@@ -1,2 +1,2 @@
 Программа собирается вызовом make из директории bin 
-Проект создан при помощи Qt Creator .pro файл расположен в src/Application 
+Проект создан при помощи Qt Creator .pro файл расположен в src/Application
