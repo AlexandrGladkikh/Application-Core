@@ -179,6 +179,10 @@ void Net::CreateNewThread()
 {
     if (netData->createThread == false)
     {
+        std::string bodyMsg;
+        app::Message event;
+        app::MsgError err;
+
         int modID[2];
         appMsg.AddNewModule(&modID[0], &modID[1]);
 
@@ -225,16 +229,19 @@ void Net::CreateNewThread()
                 int rez = pthread_create(&threadNet, &attr, NetModule, appData);
                 if (rez == 0)
                 {
+                    char buf[10];
+                    sprintf(buf, "%d", netData->appControllerId);
+                    bodyMsg.append(buf);
 
+                    event.CreateMessage(bodyMsg.c_str(), modID[1], netData->appControllerId);
+
+                    appMsg.AddMessage(event, err);
                 }
 
                 pthread_attr_destroy(&attr);
             }
             else
-            {
-                std::string bodyMsg;
-                app::Message event;
-                app::MsgError err;
+            {             
                 char buff[10];
                 sprintf(buff, "%d", modID[0]);  // pipe для ожидания сообщения в select
                 bodyMsg.append(buff);
