@@ -5,8 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "../Wrap/WrapNet.h"
-
-#include <iostream>
+#include "../Modules/AppController.h"
 
 namespace modules {
 ////////////////////////////////////
@@ -20,16 +19,11 @@ void* NetModule(void *appData)
 
     NetData netData;
 
-    InitNetModule(netData, dataMsg, dataSttng);
-
-    int modID[2];
-    dataMsg.AddNewModule(&modID[0], &modID[1]);
-
-    std::cout << modID[0] << modID[1] << std::endl;
-
-    Net net(&netData, data);
-
-    net.Process();
+    if (InitNetModule(netData, dataMsg, dataSttng))
+    {
+        Net net(&netData, data);
+        net.Process();
+    }
 }
 
 Net::Net(NetData* net, app::AppData *data) : appMsg(data->GetMsg())
@@ -39,11 +33,8 @@ Net::Net(NetData* net, app::AppData *data) : appMsg(data->GetMsg())
 
     userData = new UserData[netData->maxUser];    
     client = new pollfd[2*netData->maxUser];
-    appContData.ArrInit(netData->ratio, netData->maxUser);
-    appContData.AddNewAppCont(netData->appControllerId);
 
     currentNumberUser = 0;
-    currentAppCont = 1;
 }
 
 Net::~Net()
@@ -134,16 +125,12 @@ void Net::Process()
                 ++currentNumberUser;
                 if (currentNumberUser >= netData->maxUser)
                 {
-                    client[0].fd = -1;
+                    CreateNewThread();
                 }
-                else if (currentNumberUser >= appContData.availableSpace)
-                {
-                    client[0].fd = -1;
-                }
-            }
 
-            if (--nReady<=0)
-                continue;
+                if (--nReady<=0)
+                    continue;
+            }
         }
 
         /*
@@ -159,12 +146,13 @@ void Net::Process()
         if (client[1].revents & POLLRDNORM)
         {
             client[1].revents = -1;
-            Handler();
+            if (!Handler())
+                break;
         }
     }
 }
 
-void Net::Handler()
+bool Net::Handler()
 {
     app::Message msg;
     msg.SetRcv(netData->id);
@@ -176,14 +164,149 @@ void Net::Handler()
 
     appMsg.GetMessage(msg, err);
 
-    if (!msg.GetBodyMsg().compare(QUIT))
+    if (!msg.GetBodyMsg().compare(QUIT) && msg.GetSnd() == app::controller)
     {
         msg.CreateMessage("Close Netmodule\n", app::controller, app::netModule);
         appMsg.AddMessage(msg, err);
+
+        return false;
     }
+    else
+        return false;
 }
 
-void InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng)
+void Net::CreateNewThread()
+{
+    if (netData->createThread == false)
+    {
+        int modID[2];
+        appMsg.AddNewModule(&modID[0], &modID[1]);
+
+        int id;
+        appMsg.AddNewModule(&id);
+
+        if (modID[0] != -1 || id != -1)
+        {
+            if (netData->ratio > netData->numberThread)
+            {
+                std::string bodyMsg;
+                app::Message event;
+                app::MsgError err;
+                char buff[10];
+                sprintf(buff, "%d", modID[0]);  // pipe для ожидания сообщения в select
+                bodyMsg.append(buff);
+                bodyMsg.append("//");
+                sprintf(buff, "%d", modID[1]);  // id потока по которому будут запрашиваться сообщения в appmessage
+                bodyMsg.append(buff);
+                bodyMsg.append("//");
+                sprintf(buff, "%d", netData->socket);    // прослушивающий сокет
+                bodyMsg.append(buff);
+                bodyMsg.append("//");
+                sprintf(buff, "%d", (netData->numberThread+1));         // количество потоков в данный момент на appcontroller
+                bodyMsg.append(buff);
+                bodyMsg.append(DATAEND);
+                event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);
+                appMsg.AddMessage(event, err);
+
+                pthread_attr_t attr;
+
+                pthread_t threadNet;
+
+                pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+                pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+
+                pthread_attr_setschedpolicy(&attr, SCHED_RR);
+
+                pthread_attr_setscope(&attr, PTHREAD_SCOPE_PROCESS);
+
+                pthread_attr_init(&attr);
+
+                int rez = pthread_create(&threadNet, &attr, NetModule, appData);
+                if (rez == 0)
+                {
+
+                }
+
+                pthread_attr_destroy(&attr);
+            }
+            else
+            {
+                std::string bodyMsg;
+                app::Message event;
+                app::MsgError err;
+                char buff[10];
+                sprintf(buff, "%d", modID[0]);  // pipe для ожидания сообщения в select
+                bodyMsg.append(buff);
+                bodyMsg.append("//");
+                sprintf(buff, "%d", modID[1]);  // id потока по которому будут запрашиваться сообщения в appmessage
+                bodyMsg.append(buff);
+                bodyMsg.append("//");
+                sprintf(buff, "%d", netData->socket);    // прослушивающий сокет
+                bodyMsg.append(buff);
+                bodyMsg.append("//");
+                sprintf(buff, "%d", (netData->numberThread+1));         // количество потоков в данный момент на appcontroller
+                bodyMsg.append(buff);
+                bodyMsg.append(DATAEND);
+                event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);
+                appMsg.AddMessage(event, err);
+
+                pthread_attr_t attr;
+
+                pthread_t threadNet;
+
+                pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+                pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+
+                pthread_attr_setschedpolicy(&attr, SCHED_RR);
+
+                pthread_attr_setscope(&attr, PTHREAD_SCOPE_PROCESS);
+
+                pthread_attr_init(&attr);
+
+                int rez = pthread_create(&threadNet, &attr, NetModule, appData);
+                if (rez == 0)
+                {
+                    bodyMsg.erase();
+                    sprintf(buff, "%d", id);
+                    bodyMsg.append(buff);
+                    bodyMsg.append(DATAEND);
+
+                    event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
+
+                    appMsg.AddMessage(event, err);
+
+                    bodyMsg.erase();
+                    sprintf(buff, "%d", modID[1]);
+                    bodyMsg.append(buff);
+                    bodyMsg.append(DATAEND);
+
+                    event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
+
+                    appMsg.AddMessage(event, err);
+
+                    pthread_t threadCont;
+
+                    rez = pthread_create(&threadCont, &attr, modules::AppController, appData);
+                    if (rez != 0)
+                    {
+                        sprintf(buff, "%d", 0);
+                        event.CreateMessage(buff, modID[1], netData->id);
+                        appMsg.AddMessage(event, err);
+                    }
+                }
+
+                pthread_attr_destroy(&attr);
+            }
+        }
+    }
+
+    client[0].fd = -1;
+    netData->createThread = true;
+}
+
+bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng)
 {
     app::SettingData sttngData;
     dataSttng.GetSetting(sttngData);
@@ -198,24 +321,21 @@ void InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
 
     std::string bodyMsg = msg.GetBodyMsg();
 
-    size_t first;
     size_t second;
 
-    netData.pipe = atoi(bodyMsg.substr(first = bodyMsg.find(DATASTART)+6, second = bodyMsg.find("//")).c_str());
+    netData.pipe = atoi(bodyMsg.substr(0, second = bodyMsg.find("//")).c_str());
 
-    bodyMsg.erase(first, (second+2)-first);
+    bodyMsg.erase(0, (second+2));
 
-    netData.id = atoi(bodyMsg.substr(first = bodyMsg.find(DATASTART)+6, second = bodyMsg.find("//")).c_str());
+    netData.id = atoi(bodyMsg.substr(0, second = bodyMsg.find("//")).c_str());
 
-    bodyMsg.erase(first, (second+2)-first);
+    bodyMsg.erase(0, (second+2));
 
-    netData.socket = atoi(bodyMsg.substr(first = bodyMsg.find(DATASTART)+6, second = bodyMsg.find("//")).c_str());
+    netData.socket = atoi(bodyMsg.substr(0, second = bodyMsg.find("//")).c_str());
 
-    bodyMsg.erase(first, (second+2)-first);
+    bodyMsg.erase(0, (second+2));
 
-    netData.numberThread = atoi(bodyMsg.substr(first = bodyMsg.find(DATASTART)+6, second = bodyMsg.find("//")).c_str());
-
-    bodyMsg.erase(first, (second+2)-first);
+    netData.numberThread = atoi(bodyMsg.c_str());
 
     msg.SetRcv(netData.id);
 
@@ -227,7 +347,12 @@ void InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
 
     bodyMsg = msg.GetBodyMsg();
 
-    netData.appControllerId = atoi(bodyMsg.substr(bodyMsg.find(DATASTART)+6, bodyMsg.find(DATAEND)).c_str());
+    netData.appControllerId = atoi(bodyMsg.c_str());
+
+    if (netData.appControllerId == 0)
+        return false;
+
+    return true;
 }
 
 bool CheckRequest(std::string bodyMsg)
@@ -284,70 +409,6 @@ bool CheckRequest(std::string bodyMsg)
         return false;
 
     return true;
-}
-
-ArrAppCont::ArrAppCont()
-{
-
-}
-
-void ArrAppCont::ArrInit(int ratio, int maxUser)
-{
-    availableSpace = 0;
-
-    if (ratio<0)
-    {
-        countAppCont = (-1)*ratio;
-        maxUserOnAppCont = maxUser/countAppCont;
-        data = new AppContData[((-1)*ratio)];
-        for (int i=0; i<ratio; i++)
-        {
-            data[i].appContID = -1;
-            data[i].countUser = 0;
-        }
-    }
-    else
-    {
-        countAppCont = 1;
-        maxUserOnAppCont = maxUser;
-        data = new AppContData[1];
-        data[0].appContID = -1;
-        data[0].countUser = 0;
-    }
-}
-
-void ArrAppCont::AddNewAppCont(int appID)
-{
-    for (int i=0; i<countAppCont; i++)
-    {
-        if (data[i].appContID == -1)
-        {
-            data[i].appContID = appID;
-            availableSpace += maxUserOnAppCont;
-            break;
-        }
-    }
-}
-int ArrAppCont::GetAppContID()
-{
-    for (int i=0; i<countAppCont; i++)
-    {
-        if (data[i].appContID != -1 && data[i].countUser < maxUserOnAppCont)
-        {
-            data[i].countUser++;
-            return data[i].appContID;
-        }
-    }
-
-    return -1;
-}
-
-bool ArrAppCont::CheckFreeSpace()
-{
-    if (availableSpace != 0)
-        return true;
-    else
-        return false;
 }
 
 ////////////////////////////////////

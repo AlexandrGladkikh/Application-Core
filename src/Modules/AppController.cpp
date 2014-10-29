@@ -100,74 +100,6 @@ bool HandlerAppController::handler(app::Message &event)
         return true;
     }
 
-    if(!eventStr.compare(CREATENEWAPPCONTROLLER))
-    {
-        int newID;
-        dataMsg.AddNewModule(&newID);
-        int newNetID = atoi(bodyMsg.substr((bodyMsg.find(DATASTART)+6), bodyMsg.find(DATAEND)).c_str());
-
-        pthread_attr_t attr;
-
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-        pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-
-        pthread_attr_setschedpolicy(&attr, SCHED_RR);
-
-        pthread_attr_setscope(&attr, PTHREAD_SCOPE_PROCESS);
-
-        pthread_attr_init(&attr);
-
-        pthread_t thread;
-
-        int rez = pthread_create(&thread, &attr, modules::AppController, data);
-        if (rez != 0)
-        {
-            wrap::Log("Error create new appcontroller\n", LOGAPPCONTROLLER);
-            exit(1);
-        }
-
-        std::string bodyMsg;
-        bodyMsg.append(EVENTSTART);
-        bodyMsg.append(SETSELFID);
-        bodyMsg.append(EVENTEND);
-        bodyMsg.append(DATASTART);
-        char buf[10];
-        sprintf(buf, "%d", newID);
-        bodyMsg.append(buf);
-        bodyMsg.append(DATAEND);
-
-        event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, selfID);
-        app::MsgError err;
-
-        dataMsg.AddMessage(event, err);
-
-        if (err != app::ErrorNot)
-        {
-            wrap::Log("Error add message\n", LOGAPPCONTROLLER);
-        }
-
-        bodyMsg.erase();
-        bodyMsg.append(EVENTSTART);
-        bodyMsg.append(SETNETID);
-        bodyMsg.append(EVENTEND);
-        bodyMsg.append(DATASTART);
-        sprintf(buf, "%d", newNetID);
-        bodyMsg.append(buf);
-        bodyMsg.append(DATAEND);
-
-        event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, selfID);
-
-        dataMsg.AddMessage(event, err);
-
-        if (err != app::ErrorNot)
-        {
-            wrap::Log("Error add message\n", LOGAPPCONTROLLER);
-        }
-
-        return true;
-    }
-
     return true;
 }
 
@@ -186,24 +118,19 @@ int AppControllerInit(HandlerAppController* handler, app::AppMessage *dataMsg)
 
     std::string &bodyMsg = msg.GetBodyMsg();
 
-    int newID = atoi(bodyMsg.substr((bodyMsg.find(DATASTART)+6), bodyMsg.find(DATAEND)).c_str());
+    int newID = atoi(bodyMsg.c_str());
     handler->SetSelfID(newID);
 
     dataMsg->GetMessage(msg, err);
 
     bodyMsg = msg.GetBodyMsg();
 
-    int newNetID = atoi(bodyMsg.substr((bodyMsg.find(DATASTART)+6), bodyMsg.find(DATAEND)).c_str());
+    int newNetID = atoi(bodyMsg.c_str());
 
     bodyMsg.erase();
-    bodyMsg.append(EVENTSTART);
-    bodyMsg.append(START);
-    bodyMsg.append(EVENTEND);
-    bodyMsg.append(DATASTART);
     char buf[10];
     sprintf(buf, "%d", newID);
     bodyMsg.append(buf);
-    bodyMsg.append(DATAEND);
 
     msg.CreateMessage(bodyMsg.c_str(), newNetID, newID);
 

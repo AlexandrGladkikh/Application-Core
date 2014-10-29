@@ -22,6 +22,11 @@ ThreadData::ThreadData()
     pthread_attr_init(&attr);
 }
 
+ThreadData::~ThreadData()
+{
+    pthread_attr_destroy(&attr);
+}
+
 bool ThreadData::GetThread(int numThread, pthread_t& thread)
 {
     if (ModuleNameFirst <= numThread && numThread < ModuleNameEnd)
@@ -74,10 +79,6 @@ bool StartX(AppData *appData)
     app::Message event;
     app::MsgError err;
 
-    bodyMsg.append(EVENTSTART);
-    bodyMsg.append(SETSELFID);
-    bodyMsg.append(EVENTEND);
-    bodyMsg.append(DATASTART);
     char buff[10];
     sprintf(buff, "%d", modID[0]);  // pipe для ожидания сообщения в select
     bodyMsg.append(buff);
@@ -90,7 +91,6 @@ bool StartX(AppData *appData)
     bodyMsg.append("//");
     sprintf(buff, "%d", 1);         // количество потоков в данный момент на appcontroller
     bodyMsg.append(buff);
-    bodyMsg.append(DATAEND);
     event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);
     dataMsg.AddMessage(event, err);
 
@@ -111,13 +111,8 @@ bool StartX(AppData *appData)
     dataMsg.AddNewModule(&id);
 
     bodyMsg.erase();
-    bodyMsg.append(EVENTSTART);
-    bodyMsg.append(SETSELFID);
-    bodyMsg.append(EVENTEND);
-    bodyMsg.append(DATASTART);
     sprintf(buff, "%d", id);
     bodyMsg.append(buff);
-    bodyMsg.append(DATAEND);
 
     event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
 
@@ -130,13 +125,8 @@ bool StartX(AppData *appData)
     }
 
     bodyMsg.erase();
-    bodyMsg.append(EVENTSTART);
-    bodyMsg.append(SETNETID);
-    bodyMsg.append(EVENTEND);
-    bodyMsg.append(DATASTART);
     sprintf(buff, "%d", modID[1]);
     bodyMsg.append(buff);
-    bodyMsg.append(DATAEND);
 
     event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
 
@@ -154,6 +144,8 @@ bool StartX(AppData *appData)
     if (rez != 0)
         return false;
     ////////////////////////////////////
+
+    pthread_attr_destroy(&attrObj);
 
     return true;
 }

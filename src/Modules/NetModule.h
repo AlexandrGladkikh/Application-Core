@@ -67,29 +67,6 @@ struct UserData
     int size;
 };
 
-struct AppContData
-{
-    int countUser;
-    int appContID;
-};
-
-struct ArrAppCont
-{
-    int countAppCont;
-    int maxUserOnAppCont;
-    int availableSpace;
-
-    AppContData* data;
-
-    ArrAppCont();
-
-    void ArrInit(int ratio, int maxUser);
-
-    int GetAppContID();
-    bool CheckFreeSpace();
-    void AddNewAppCont(int appID);
-};
-
 class Net
 {
 private:
@@ -99,29 +76,24 @@ private:
 
     pollfd *client;
     app::AppMessage &appMsg;
-    std::unordered_map<std::string, int> usr;
-
-    ArrAppCont appContData;
 
     char buf[1000];
 
     int currentNumberUser;
-    int currentAppCont;
 
-    void Handler();
+    bool Handler();
 public:
     Net(NetData* net, app::AppData* data);
     ~Net();
     void Process();
+    void CreateNewThread();
 };
 
 void* NetModule(void *appdata);
 
-void InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng);
+bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng);
 
 bool CheckRequest(std::string bodyMsg);
-
-
 
 ////////////////////////////////////
 }

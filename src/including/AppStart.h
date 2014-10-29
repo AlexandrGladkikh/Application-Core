@@ -17,6 +17,7 @@ struct ThreadData
     pthread_t threads[ModuleNameEnd];
 
     ThreadData();
+    ~ThreadData();
 
     bool GetThread(int numThread, pthread_t& thread);
     void GetAttr(pthread_attr_t& attrObj);
