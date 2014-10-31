@@ -14,30 +14,33 @@ void* AppController(void *appData)
     app::AppMessage &dataMsg = data->GetMsg();
     HandlerAppController handler(data);
 
-    int selfID = AppControllerInit(&handler, &dataMsg);
+    int selfID;
 
-    app::Message msg;
-    msg.SetRcv(selfID);
-    app::MsgError err;
-
-    bool continuation = true;
-
-    do
+    if ((selfID = AppControllerInit(&handler, &dataMsg)))
     {
+        app::Message msg;
         msg.SetRcv(selfID);
-        dataMsg.GetMessage(msg, err);
+        app::MsgError err;
 
-        if (err != app::ErrorNot)
-        {
-            wrap::Log("Error get message\n", LOGAPPCONTROLLER);
-            continue;
-        }
-        else
-        {
-            continuation = handler.handler(msg);
-        }
+        bool continuation = true;
 
-    } while(continuation);
+        do
+        {
+            msg.SetRcv(selfID);
+            dataMsg.GetMessage(msg, err);
+
+            if (err != app::ErrorNot)
+            {
+                wrap::Log("Error get message\n", LOGAPPCONTROLLER);
+                continue;
+            }
+            else
+            {
+                continuation = handler.handler(msg);
+            }
+
+        } while(continuation);
+    }
 }
 
 HandlerAppController::HandlerAppController(app::AppData *appData) : dataMsg(appData->GetMsg())
@@ -118,10 +121,24 @@ int AppControllerInit(HandlerAppController* handler, app::AppMessage *dataMsg)
 
     std::string &bodyMsg = msg.GetBodyMsg();
 
+    if (msg.GetSnd() == app::controller)
+    {
+        msg.CreateMessage("Close AppController\n", app::controller, app::NewAppModule);
+        dataMsg->AddMessage(msg, err);
+        return false;
+    }
+
     int newID = atoi(bodyMsg.c_str());
     handler->SetSelfID(newID);
 
     dataMsg->GetMessage(msg, err);
+
+    if (msg.GetSnd() == app::controller)
+    {
+        msg.CreateMessage("Close AppController\n", app::controller, app::NewAppModule);
+        dataMsg->AddMessage(msg, err);
+        return false;
+    }
 
     bodyMsg = msg.GetBodyMsg();
 

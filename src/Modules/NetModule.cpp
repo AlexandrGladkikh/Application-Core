@@ -114,7 +114,6 @@ void Net::Process()
                 if (i == 2*netData->maxUser)
                 {
                     wrap::Close(connfd);
-                    client[i].fd = -1;
                 }
                 else
                 {
@@ -145,7 +144,6 @@ void Net::Process()
 
         if (client[1].revents & POLLRDNORM)
         {
-            client[1].revents = -1;
             if (!Handler())
                 break;
         }
@@ -160,7 +158,7 @@ bool Net::Handler()
 
     char buff[10];
 
-    read(netData->pipe, buff, 10);
+    read(netData->pipe, buff, 4);
 
     appMsg.GetMessage(msg, err);
 
@@ -168,11 +166,13 @@ bool Net::Handler()
     {
         msg.CreateMessage("Close Netmodule\n", app::controller, app::netModule);
         appMsg.AddMessage(msg, err);
-
-        return false;
     }
     else
-        return false;
+    {
+        appMsg.DeleteModule(netData->id);
+    }
+
+    return false;
 }
 
 void Net::CreateNewThread()
@@ -186,10 +186,7 @@ void Net::CreateNewThread()
         int modID[2];
         appMsg.AddNewModule(&modID[0], &modID[1]);
 
-        int id;
-        appMsg.AddNewModule(&id);
-
-        if (modID[0] != -1 || id != -1)
+        if (modID[1] != -1)
         {
             if (netData->ratio > netData->numberThread)
             {
@@ -226,22 +223,23 @@ void Net::CreateNewThread()
 
                 pthread_attr_init(&attr);
 
-                int rez = pthread_create(&threadNet, &attr, NetModule, appData);
-                if (rez == 0)
-                {
-                    char buf[10];
-                    sprintf(buf, "%d", netData->appControllerId);
-                    bodyMsg.append(buf);
+                pthread_create(&threadNet, &attr, NetModule, appData);
 
-                    event.CreateMessage(bodyMsg.c_str(), modID[1], netData->appControllerId);
+                char buf[10];
+                sprintf(buf, "%d", netData->appControllerId);
+                bodyMsg.append(buf);
 
-                    appMsg.AddMessage(event, err);
-                }
+                event.CreateMessage(bodyMsg.c_str(), modID[1], netData->appControllerId);
+
+                appMsg.AddMessage(event, err);
 
                 pthread_attr_destroy(&attr);
             }
             else
-            {             
+            {
+                int id;
+                appMsg.AddNewModule(&id);
+
                 char buff[10];
                 sprintf(buff, "%d", modID[0]);  // pipe для ожидания сообщения в select
                 bodyMsg.append(buff);
@@ -272,37 +270,29 @@ void Net::CreateNewThread()
 
                 pthread_attr_init(&attr);
 
-                int rez = pthread_create(&threadNet, &attr, NetModule, appData);
-                if (rez == 0)
-                {
-                    bodyMsg.erase();
-                    sprintf(buff, "%d", id);
-                    bodyMsg.append(buff);
-                    bodyMsg.append(DATAEND);
+                pthread_create(&threadNet, &attr, NetModule, appData);
 
-                    event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
+                bodyMsg.erase();
+                sprintf(buff, "%d", id);
+                bodyMsg.append(buff);
+                bodyMsg.append(DATAEND);
 
-                    appMsg.AddMessage(event, err);
+                event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
 
-                    bodyMsg.erase();
-                    sprintf(buff, "%d", modID[1]);
-                    bodyMsg.append(buff);
-                    bodyMsg.append(DATAEND);
+                appMsg.AddMessage(event, err);
 
-                    event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
+                bodyMsg.erase();
+                sprintf(buff, "%d", modID[1]);
+                bodyMsg.append(buff);
+                bodyMsg.append(DATAEND);
 
-                    appMsg.AddMessage(event, err);
+                event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
 
-                    pthread_t threadCont;
+                appMsg.AddMessage(event, err);
 
-                    rez = pthread_create(&threadCont, &attr, modules::AppController, appData);
-                    if (rez != 0)
-                    {
-                        sprintf(buff, "%d", 0);
-                        event.CreateMessage(buff, modID[1], netData->id);
-                        appMsg.AddMessage(event, err);
-                    }
-                }
+                pthread_t threadCont;
+
+                pthread_create(&threadCont, &attr, modules::AppController, appData);
 
                 pthread_attr_destroy(&attr);
             }
@@ -324,7 +314,15 @@ bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
     app::Message msg;
     msg.SetRcv(app::NewNetModule);
     app::MsgError err;
+
+
     dataMsg.GetMessage(msg, err);
+    if (msg.GetSnd() == app::controller)
+    {
+        msg.CreateMessage("Close NetModule\n", app::controller, app::NewNetModule);
+        dataMsg.AddMessage(msg, err);
+        return false;
+    }
 
     std::string bodyMsg = msg.GetBodyMsg();
 
@@ -348,9 +346,16 @@ bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
 
     char buff[10];
 
-    read(netData.pipe, buff, 10);
+    read(netData.pipe, buff, 4);
 
     dataMsg.GetMessage(msg, err);
+
+    if (msg.GetSnd() == app::controller)
+    {
+        msg.CreateMessage("Close NetModule\n", app::controller, app::NewNetModule);
+        dataMsg.AddMessage(msg, err);
+        return false;
+    }
 
     bodyMsg = msg.GetBodyMsg();
 
