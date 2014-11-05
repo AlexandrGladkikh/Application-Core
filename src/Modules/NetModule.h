@@ -32,22 +32,11 @@ struct NetData
     int pipe;               // пробуждает поток в случае появления для него сообщения внутри программы  //
     int id;                 // id потока в модуле AppMessage                                            //
     int socket;             // прослушивающий сокет                                                     //
-    int numberThread;       // количество потоков на текущем appcontroller
+    int numberThread;       // количество потоков на текущем appcontroller                              //
     int maxUser;            // максимальное число пользователей на поток                                //
     int ratio;              // соотношение количества потоков NetModule на AppController                //
     int appControllerId;    // id контроллера к которому привязан текущей модуль                        //
-    bool createThread;      // каждый поток может создать только одного потомка, это флаг
-};
-
-struct LinkDataUser
-{
-    std::string name;
-    int node;
-};
-
-struct LinkDataRoom
-{
-    std::vector<LinkDataUser> LinkUser;
+    bool createThread;      // каждый поток может создать только одного потомка, это флаг               //
 };
 
 struct UserData
@@ -55,14 +44,8 @@ struct UserData
     std::string name;
 
     std::string rcvBuf;
-    std::string sndBuf;
 
-    std::vector<LinkDataUser> LinkUser;
-
-    bool connectRoom;
-    LinkDataRoom* LinkRoom;
-
-    int appControllerId;
+    int numberRoom;
 
     int size;
 };

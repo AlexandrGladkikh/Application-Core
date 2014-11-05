@@ -42,9 +42,6 @@ int CreateSocket(const char *host, const char *serv, socklen_t *addrlenp)
         if (!Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))
             return -1;
 
-        if (!Setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)))
-            return -1;
-
         if ((val = Fcntl(listenfd, F_GETFL, 0)) == -1)
             return -1;
         if ((Fcntl(listenfd, F_SETFL, val | O_NONBLOCK)) == -1)

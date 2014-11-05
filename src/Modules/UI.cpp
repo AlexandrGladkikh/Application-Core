@@ -437,7 +437,8 @@ void WaitEvent(EventData* eventData)
 
         if (FD_ISSET(eventData->GetSocketPipe1(), eventData->GetFdSet()))
         {
-            nRcv = read(eventData->GetSocketPipe1(), eventData->GetEvent(), eventData->GetSizeBuf());
+            while((nRcv = read(eventData->GetSocketPipe1(), eventData->GetEvent(), eventData->GetSizeBuf())) == -1)
+            { }
 
             eventData->GetEvent()[nRcv] = '\0';
             break;
@@ -451,8 +452,10 @@ bool AppExit(EventData* eventData, app::AppMessage* data)
     app::MsgError err;
     msg.CreateMessage(EXIT, app::controller, app::UI);
     data->AddMessage(msg, err);
+    int nRcv;
 
-    read(eventData->GetSocketPipe1(), eventData->GetEvent(), eventData->GetSizeBuf());
+    while ((nRcv = read(eventData->GetSocketPipe1(), eventData->GetEvent(), eventData->GetSizeBuf())) == -1)
+    { }
 
     return atoi(eventData->GetEvent());
 }

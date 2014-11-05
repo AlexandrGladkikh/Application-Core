@@ -202,9 +202,12 @@ bool ControllerHandler::EventHandler(int behaviorEvent, std::string param)
     }
     else if (behavior[behaviorEvent].TestSetEvent(SHOWDATA))
     {
-        while (write(linkUI->GetLink(), param.c_str(), param.length()))
+        int nRcv;
+        while (1)
         {
-            ;
+            nRcv = write(linkUI->GetLink(), param.c_str(), param.length());
+            if ((nRcv != -1) && (nRcv != 0))
+                break;
         }
         return true;
     }

@@ -256,9 +256,12 @@ void AppMessage::AddMessage(Message msg,  MsgError &qerror)
 
         if (sockNetModule[msg.GetRcv()] != -1)
         {
-            while (!write(sockNetModule[msg.GetRcv()], "read", 4))
+            int nRcv;
+            while (1)
             {
-                ;
+                nRcv = write(sockNetModule[msg.GetRcv()], "read", 4);
+                if ((nRcv != -1) && (nRcv != 0))
+                    break;
             }
         }
         else if (statusmodule.GetStatus(msg.GetRcv()) == StatusWait && qerror == ErrorNot)
@@ -301,6 +304,7 @@ int AppMessage::AddMessageAllModules(Message msg, MsgError &qerror)
     pthread_mutex_lock(&mutexArrModules);
         appClose = true;
     pthread_mutex_unlock(&mutexArrModules);
+    int nRcv;
 
     for (int i = ModuleNameFirst; i < maxModules; i++)
     {
@@ -312,9 +316,11 @@ int AppMessage::AddMessageAllModules(Message msg, MsgError &qerror)
             queueMessage[i].AddMessage(msg, qerror);
 
             if (sockNetModule[i] != -1)
-                while (!write(sockNetModule[msg.GetRcv()], "read", 4))
+                while (1)
                 {
-                    ;
+                    nRcv = write(sockNetModule[msg.GetRcv()], "read", 4);
+                    if ((nRcv != -1) && (nRcv != 0))
+                        break;
                 }
             else if (statusmodule.GetStatus(i) == StatusWait && qerror == ErrorNot)
             {

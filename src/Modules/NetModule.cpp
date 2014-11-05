@@ -33,6 +33,10 @@ Net::Net(NetData* net, app::AppData *data) : appMsg(data->GetMsg())
 
     userData = new UserData[netData->maxUser];    
     client = new pollfd[2*netData->maxUser];
+    for (int i=0; i<2*netData->maxUser; i++)
+    {
+        client[i].fd = -1;
+    }
 
     currentNumberUser = 0;
 }
@@ -44,7 +48,7 @@ Net::~Net()
 
 void Net::Process()
 {
-    sockaddr cliaddr;
+    sockaddr_storage cliaddr;
     socklen_t clilen;
     int connfd;
     int nReady;
@@ -67,20 +71,13 @@ void Net::Process()
 
         if (client[0].revents & POLLRDNORM)
         {
-            client[0].revents = -1;
             clilen = sizeof(cliaddr);
-            while((connfd = accept(netData->socket, &cliaddr, &clilen) == -1))
+            while((connfd = accept(netData->socket, (sockaddr* ) &cliaddr, &clilen) == -1))
                 if (errno == EINTR)
                     continue;
 
             int val;
             const int on = 1;
-
-            if (!wrap::Setsockopt(connfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))
-            {
-                wrap::Close(connfd);
-                connfd = -1;
-            }
 
             if (!wrap::Setsockopt(connfd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)))
             {
@@ -107,7 +104,7 @@ void Net::Process()
                     if (client[i].fd == -1)
                     {
                         client[i].fd = connfd;
-                        client[i].events = POLLRDNORM;
+                        client[i].events = POLLRDNORM & POLLRDHUP;
                     }
                 }
 
@@ -157,8 +154,10 @@ bool Net::Handler()
     app::MsgError err;
 
     char buff[10];
+    ssize_t readSize;
 
-    read(netData->pipe, buff, 4);
+    while ((readSize = read(netData->pipe, buff, 4)) == -1)
+    { }
 
     appMsg.GetMessage(msg, err);
 
@@ -345,8 +344,10 @@ bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
     msg.SetRcv(netData.id);
 
     char buff[10];
+    ssize_t readSize;
 
-    read(netData.pipe, buff, 4);
+    while((readSize = read(netData.pipe, buff, 4)) == -1)
+    { }
 
     dataMsg.GetMessage(msg, err);
 

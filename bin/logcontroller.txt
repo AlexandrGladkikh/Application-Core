@@ -18,3 +18,15 @@ close moduleData
 close appcontroller
 Close Netmodule
 close app...
+close moduleData
+Close Netmodule
+close appcontroller
+close app...
+close moduleData
+Close Netmodule
+close appcontroller
+close app...
+close moduleData
+Close Netmodule
+close appcontroller
+close app...
