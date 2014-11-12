@@ -73,7 +73,7 @@ void InitUILink(app::AppMessage* dataMsg, UILink* link)
 
 ControllerBehavior::ControllerBehavior()
 {
-    for(int i=FIRSTEVENTS; i<EVENTEND; i++)
+    for(int i=FIRSTEVENTS; i<EVENTLAST; i++)
     {
         condition[i] = UnavailableEvent;
     }
@@ -81,7 +81,7 @@ ControllerBehavior::ControllerBehavior()
 
 void ControllerBehavior::SetBehavior(int event)
 {
-    if (FIRSTEVENTS<=event && event<EVENTEND)
+    if (FIRSTEVENTS<=event && event<EVENTLAST)
     {
         condition[event] = (Event)event;
     }
@@ -89,7 +89,7 @@ void ControllerBehavior::SetBehavior(int event)
 
 bool ControllerBehavior::TestSetEvent(int event)
 {
-    if (FIRSTEVENTS<=event && event<EVENTEND)
+    if (FIRSTEVENTS<=event && event<EVENTLAST)
     {
         return (condition[event]==event);
     }
@@ -120,7 +120,7 @@ ControllerHandler::ControllerHandler(app::AppMessage *appData, UILink *uiLink)
 {
     dataMsg = appData;
     linkUI = uiLink;
-    for(int i=FIRSTEVENTS; i<EVENTEND; i++)
+    for(int i=FIRSTEVENTS; i<EVENTLAST; i++)
     {
         behavior[i].SetBehavior(i);
     }

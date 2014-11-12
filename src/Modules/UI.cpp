@@ -333,6 +333,13 @@ bool UIHandler::EventHandler(int behaviorEvent, const char* param)
                 std::cin >> value;
                 sttng.SetRatioAppContAppNet(value);
             }
+            else if (!strcmp(param, "-setUsrRoom"))
+            {
+                int value;
+                std::cout << "Введите число пользователей на комнату чата:" << std::endl;
+                std::cin >> value;
+                sttng.SetUserOnChatRoom(value);
+            }
             else
             {
                 std::cout << ">incorrect param" << std::endl;

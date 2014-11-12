@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "../Wrap/WrapNet.h"
+#include "../Wrap/UserData.h"
 #include "../Modules/AppController.h"
 
 namespace modules {
@@ -31,6 +32,7 @@ Net::Net(NetData* net, app::AppData *data) : appMsg(data->GetMsg())
     netData = net;
     appData = data;
 
+    chat = new Chat((netData->maxUser/netData->userOnchatRoom), netData->userOnchatRoom);
     userData = new UserData[netData->maxUser];    
     client = new pollfd[2*netData->maxUser];
     for (int i=0; i<2*netData->maxUser; i++)
@@ -44,6 +46,8 @@ Net::Net(NetData* net, app::AppData *data) : appMsg(data->GetMsg())
 Net::~Net()
 {
     delete[] userData;
+    delete[] client;
+    delete chat;
 }
 
 void Net::Process()
@@ -132,22 +136,19 @@ void Net::Process()
         /*
          *возможные события присылаемые внутри программы
          *1) Добавить пользователя( принять аутентификационные данные)
-         * //2) Удалить пользователя
-         *3) Отвергнуть аутентификационные данные
-         *4) Переслать указанному пользователю данные
-         *5) Добавить данные LinkUser или LinkRoom (Два разных события) указанному пользователю
-         *6) Завершение работы
+         *2) Отвергнуть аутентификационные данные
+         *3) Завершение работы
         */
 
         if (client[1].revents & POLLRDNORM)
         {
-            if (!Handler())
+            if (!HandlerLocalMsg())
                 break;
         }
     }
 }
 
-bool Net::Handler()
+bool Net::HandlerLocalMsg()
 {
     app::Message msg;
     msg.SetRcv(netData->id);
@@ -163,15 +164,47 @@ bool Net::Handler()
 
     if (!msg.GetBodyMsg().compare(QUIT) && msg.GetSnd() == app::controller)
     {
+        for (int i=2; i<2*netData->maxUser; i++)
+        {
+            if (client[i].fd != -1)
+            wrap::Close(client[i].fd);
+        }
         msg.CreateMessage("Close Netmodule\n", app::controller, app::netModule);
         appMsg.AddMessage(msg, err);
+        return false;
+    }
+
+    std::string& bodyMsg= msg.GetBodyMsg();
+    wrap::UserDataAdd *usrData = (wrap::UserDataAdd*)bodyMsg.c_str();
+
+    if (usrData->CheckFlag())
+    {
+        for (int i=2; i<netData->maxUser; i++)
+        {
+            if (client[i].fd != -1)
+            {
+                client[i] = client[usrData->GetPos()];
+                client[usrData->GetPos()].fd = -1;
+
+                unsigned int posInRoom;
+                unsigned int numberRoom;
+
+                chat->AddUsr(i, posInRoom, numberRoom);
+
+                userData[i].numberRoom = numberRoom;
+                userData[i].posInRoom = posInRoom;
+
+                userData[i].name = usrData->GetName();
+
+                break;
+            }
+        }
     }
     else
     {
-        appMsg.DeleteModule(netData->id);
+        wrap::Close(client[usrData->GetPos()].fd);
+        client[usrData->GetPos()].fd = -1;
     }
-
-    return false;
 }
 
 void Net::CreateNewThread()
@@ -204,7 +237,6 @@ void Net::CreateNewThread()
                 bodyMsg.append("//");
                 sprintf(buff, "%d", (netData->numberThread+1));         // количество потоков в данный момент на appcontroller
                 bodyMsg.append(buff);
-                bodyMsg.append(DATAEND);
                 event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);
                 appMsg.AddMessage(event, err);
 
@@ -251,7 +283,6 @@ void Net::CreateNewThread()
                 bodyMsg.append("//");
                 sprintf(buff, "%d", (netData->numberThread+1));         // количество потоков в данный момент на appcontroller
                 bodyMsg.append(buff);
-                bodyMsg.append(DATAEND);
                 event.CreateMessage(bodyMsg.c_str(), app::NewNetModule, app::UI);
                 appMsg.AddMessage(event, err);
 
@@ -274,7 +305,6 @@ void Net::CreateNewThread()
                 bodyMsg.erase();
                 sprintf(buff, "%d", id);
                 bodyMsg.append(buff);
-                bodyMsg.append(DATAEND);
 
                 event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
 
@@ -283,7 +313,6 @@ void Net::CreateNewThread()
                 bodyMsg.erase();
                 sprintf(buff, "%d", modID[1]);
                 bodyMsg.append(buff);
-                bodyMsg.append(DATAEND);
 
                 event.CreateMessage(bodyMsg.c_str(), app::NewAppModule, app::UI);
 
@@ -302,12 +331,106 @@ void Net::CreateNewThread()
     netData->createThread = true;
 }
 
+ChatRoom::~ChatRoom()
+{
+    delete[] usrID;
+}
+
+void ChatRoom::ChatRoomInit(int valUsr)
+{
+    usrID = new unsigned int[valUsr];
+    numUsr = valUsr;
+
+    for (int i=0; i< valUsr; i++)
+    {
+        usrID[i] = -1;
+    }
+
+    availableSpace = valUsr;
+}
+
+bool ChatRoom::CheckAvailableSpace()
+{
+    return (availableSpace) ? true : false;
+}
+
+unsigned int ChatRoom::AddUsr(int id)
+{
+    unsigned int i = 0;
+    while (i < numUsr)
+    {
+        if (usrID[i] == -1)
+        {
+            usrID[i] = id;
+            availableSpace--;
+            break;
+        }
+
+        i++;
+    }
+
+    return i;
+}
+
+Chat::Chat(int valRoom, int numUsrOnRoom)
+{
+    chatRoom = new ChatRoom[valRoom];
+    numRoom = valRoom;
+
+    for (int i=0; i<valRoom; i++)
+        chatRoom[i].ChatRoomInit(numUsrOnRoom);
+}
+
+Chat::~Chat()
+{
+    delete[] chatRoom;
+}
+
+void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom)
+{
+    unsigned int i = 0;
+    while (i < numRoom)
+    {
+        if (chatRoom[i].CheckAvailableSpace())
+        {
+            posInRoom = chatRoom[i].AddUsr(id);
+            numberRoom = i;
+        }
+
+        i++;
+    }
+
+    roomWaitHandler.push_back(i);
+}
+
+std::deque<int>::iterator Chat::GetIDRoomWaitHadler(/*int* idRoom, unsigned int* size*/)
+{
+    std::deque<int>::iterator it = roomWaitHandler.begin();
+    /**size = roomWaitHandler.size();
+
+    int i = 0;
+
+    while (it != roomWaitHandler.end())
+    {
+        idRoom[i] = *it++;
+
+        i++;
+    }*/
+    return it;
+}
+
+ChatRoom* Chat::GetChatRoom(unsigned int num)
+{
+    return &chatRoom[num];
+}
+
 bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng)
 {
     app::SettingData sttngData;
     dataSttng.GetSetting(sttngData);
     netData.maxUser = sttngData.GetUserOnThread();
     netData.ratio = sttngData.GetRatioAppContAppNet();
+    netData.userOnchatRoom = sttngData.GetUserOnChatRoom();
     netData.createThread = false;
 
     app::Message msg;
@@ -323,7 +446,7 @@ bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
         return false;
     }
 
-    std::string bodyMsg = msg.GetBodyMsg();
+    std::string &bodyMsg = msg.GetBodyMsg();
 
     size_t second;
 

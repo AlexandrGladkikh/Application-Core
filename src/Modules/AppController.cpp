@@ -53,47 +53,33 @@ HandlerAppController::HandlerAppController(app::AppData *appData) : dataMsg(appD
 bool HandlerAppController::handler(app::Message &event)
 {
     std::string &bodyMsg = event.GetBodyMsg();
-    std::string eventStr;
-    size_t start;
-    size_t end;
 
-    start = bodyMsg.find(EVENTSTART);
-    end = bodyMsg.find(EVENTEND);
-
-    if (start == std::string::npos || end == std::string::npos)
+    if(!bodyMsg.compare(QUIT))
     {
-
-        if(!bodyMsg.compare(QUIT))
+        dataMsg.DeleteModule(selfID);
+        if (!selfID)
         {
-            dataMsg.DeleteModule(selfID);
-            if (!selfID)
-            {
-                return false;
-            }
-            else
-            {
-                if (event.GetSnd() == app::controller)
-                {
-                    event.SetBodyMsg("close appcontroller\n");
-                    event.SetRcv(app::controller);
-                    event.SetSnd(app::appController);
-
-                    app::MsgError err;
-                    dataMsg.AddMessage(event, err);
-                }
-            }
-
             return false;
         }
         else
         {
-            wrap::Log("Error parse message\n", LOGAPPCONTROLLER);
+            if (event.GetSnd() == app::controller)
+            {
+                event.SetBodyMsg("close appcontroller\n");
+                event.SetRcv(app::controller);
+                event.SetSnd(app::appController);
+
+                app::MsgError err;
+                dataMsg.AddMessage(event, err);
+            }
         }
-        return true;
+
+        return false;
     }
     else
     {
-        eventStr = bodyMsg.substr(start+7, end);
+        wrap::Log("Error parse message\n", LOGAPPCONTROLLER);
+        return true;
     }
 
     if (AppCont(event))

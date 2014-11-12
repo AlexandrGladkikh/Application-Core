@@ -7,11 +7,10 @@
 #include <string>
 #include <queue>
 #include <pthread.h>
+#include "AppDefined.h"
 
 namespace app {
 ////////////////////////////////////
-
-#define BASICMODULES 5
 
     enum MsgError
     {

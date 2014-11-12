@@ -102,6 +102,10 @@ void SettingData::SetUserOnThread(int val)
     userOnThread = val;
 }
 
+void SettingData::SetUserOnChatRoom(int val)
+{
+    userOnChatRoom = val;
+}
 
 void SettingData::SetRatioAppContAppNet(int val)
 {
@@ -156,6 +160,11 @@ const char* SettingData::GetServ()
 int SettingData::GetUserOnThread()
 {
     return userOnThread;
+}
+
+int SettingData::GetUserOnChatRoom()
+{
+    return userOnChatRoom;
 }
 
 int SettingData::GetRatioAppContAppNet()
@@ -275,6 +284,8 @@ void SettingData::ListSetting()
     std::cout << "user on thread: " << userOnThread << std::endl;
 
     std::cout << "ratio AppController and AppNet: " << ratioAppContAppNet << std::endl;
+
+    std::cout << "user on char room: " << userOnChatRoom << std::endl;
 }
 
 bool AppSetting::SaveSetting()
@@ -330,8 +341,9 @@ bool AppSetting::ResetSetting()
     settingData.SetMaxModules(7);
     settingData.SetHost("0::0");
     settingData.SetServ("15348");
-    settingData.SetRatioAppContAppNet(1);
-    settingData.SetUserOnThread(16);
+    settingData.SetRatioAppContAppNet(3);
+    settingData.SetUserOnThread(5000);
+    settingData.SetUserOnChatRoom(100);
 
     std::fstream setting;
 

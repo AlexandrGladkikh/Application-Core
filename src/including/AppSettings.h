@@ -75,6 +75,7 @@ struct SettingData
     int valueMaxModules;
 
     int userOnThread;
+    int userOnChatRoom;
     int ratioAppContAppNet;
 
     char host[100];
@@ -97,6 +98,7 @@ struct SettingData
     void SetServ(const char *srv);
 
     void SetUserOnThread(int val);
+    void SetUserOnChatRoom(int val);
     void SetRatioAppContAppNet(int val);
 
     DataAdd GetDataAdd();
@@ -113,6 +115,7 @@ struct SettingData
     const char* GetServ();
 
     int GetUserOnThread();
+    int GetUserOnChatRoom();
     int GetRatioAppContAppNet();
 
     void ListSetting();

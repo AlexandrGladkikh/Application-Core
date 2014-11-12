@@ -49,7 +49,7 @@ DataHandler::~DataHandler()
 
 bool DataHandler::Handler(app::Message& event)
 {
-    std::string& bodyMsg = event.GetBodyMsg();
+    std::string &bodyMsg = event.GetBodyMsg();
     std::string eventStr;
     std::string nameRcv;
     size_t posEventStart;

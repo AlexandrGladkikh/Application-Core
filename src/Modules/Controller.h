@@ -4,13 +4,11 @@
 #pragma once
 
 #include "../including/AppData.h"
+#include "ModulesDefined.h"
 #include <string>
 
 namespace modules {
 ////////////////////////////////////
-
-#define LOGCONTROLLER "logcontroller.txt"
-#define BASICMODULES 4
 
 enum Event
 {
@@ -18,13 +16,9 @@ FIRSTEVENTS = 0,
 SHOWDATA = 0,
 LOGDATA = 1,
 APPEXIT = 2,
-EVENTEND = 3,
+EVENTLAST = 3,
 UnavailableEvent = -1
 };
-
-#define SHOW "show"
-#define LOG "log"
-#define EXIT "quit"
 
 struct UILink
 {
@@ -37,7 +31,7 @@ struct UILink
 
 struct ControllerBehavior
 {
-    int condition[EVENTEND];
+    int condition[EVENTLAST];
 
     ControllerBehavior();
     void SetBehavior(int event);
@@ -62,7 +56,7 @@ private:
     app::AppMessage *dataMsg;
     UILink *linkUI;
 
-    ControllerBehavior behavior[EVENTEND];
+    ControllerBehavior behavior[EVENTLAST];
 
     void Parser(std::string event, ControllerHandlerData* handlerData);
 

@@ -8,24 +8,11 @@
 #include <vector>
 #include "../including/AppData.h"
 #include <unordered_map>
+#include <deque>
+#include "ModulesDefined.h"
 
 namespace modules {
 ////////////////////////////////////
-
-#define MSGSTART        "<message>"
-#define MSGEND          "</message>"
-#define NAMERCVSTART    "<nameRcv>"
-#define NAMERCVEND      "</nameRcv>"
-#define NAMESNDSTART    "<nameSnd>"
-#define NAMESNDEND      "</nameSnd>"
-#define EVENTSTART      "<event>"
-#define EVENTEND        "</event>"
-#define DATASTART       "<data>"
-#define DATAEND         "</data>"
-#define IDNODESTART     "<idNode>"
-#define IDNODEEND       "</idNode>"
-
-#define QUIT "quit"
 
 struct NetData
 {
@@ -36,6 +23,7 @@ struct NetData
     int maxUser;            // максимальное число пользователей на поток                                //
     int ratio;              // соотношение количества потоков NetModule на AppController                //
     int appControllerId;    // id контроллера к которому привязан текущей модуль                        //
+    int userOnchatRoom;     // число пользователей на одну комнату чата
     bool createThread;      // каждый поток может создать только одного потомка, это флаг               //
 };
 
@@ -45,9 +33,70 @@ struct UserData
 
     std::string rcvBuf;
 
+    std::string sndBuf;
+
     int numberRoom;
+    int posInRoom;
 
     int size;
+
+    int readSize;
+};
+
+struct PrivateMsg
+{
+    unsigned int idUserSnd;
+    unsigned int idUserRcv;
+
+    std::string msg;
+
+};
+
+struct PublicMsg
+{
+    std::string idUserName;
+    std::vector<int> halfTransmission;
+
+    std::string msg;
+};
+
+struct ChatRoom
+{
+    unsigned int *usrID;
+    unsigned int availableSpace;
+    unsigned int numUsr;
+    bool waitHandler;
+
+    std::deque<PrivateMsg> queuePrivateMsg;
+
+    std::deque<PublicMsg> queuePublicMsg;
+
+    ChatRoom() : waitHandler(false) { }
+    ~ChatRoom();
+
+    void ChatRoomInit(int valUsr);
+
+    void AddPrivatMsg(PrivateMsg msg);
+    void AddPublicMsg(PublicMsg msg);
+
+    bool CheckAvailableSpace();
+    unsigned int AddUsr(int id);
+};
+
+class Chat
+{
+private:
+    ChatRoom *chatRoom;
+    unsigned int numRoom;
+
+    std::deque<int> roomWaitHandler;
+public:
+    Chat(int valRoom, int numUsrOnRoom);
+    ~Chat();
+
+     void AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom);
+     std::deque<int>::iterator GetIDRoomWaitHadler(/*int* idRoom, unsigned int* size*/);
+     ChatRoom* GetChatRoom(unsigned int num);
 };
 
 class Net
@@ -56,6 +105,7 @@ private:
     NetData* netData;
     UserData* userData;
     app::AppData* appData;
+    Chat *chat;
 
     pollfd *client;
     app::AppMessage &appMsg;
@@ -64,7 +114,7 @@ private:
 
     int currentNumberUser;
 
-    bool Handler();
+    bool HandlerLocalMsg();
 public:
     Net(NetData* net, app::AppData* data);
     ~Net();

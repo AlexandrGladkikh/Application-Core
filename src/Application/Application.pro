@@ -16,7 +16,8 @@ SOURCES += main.cpp \
     ../Modules/NetModule.cpp \
     ../Modules/UI.cpp \
     ../Wrap/WrapNet.cpp \
-    ../Wrap/Log.cpp
+    ../Wrap/Log.cpp \
+    ../Wrap/UserData.cpp
 
 HEADERS += \
     ../including/AppStatus.h \
@@ -30,7 +31,10 @@ HEADERS += \
     ../Modules/NetModule.h \
     ../Modules/UI.h \
     ../Wrap/WrapNet.h \
-    ../Wrap/Log.h
+    ../Wrap/Log.h \
+    ../Wrap/UserData.h \
+    ../including/AppDefined.h \
+    ../Modules/ModulesDefined.h
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/release/ -lAppcontroller

@@ -4,11 +4,10 @@
 #pragma once
 
 #include "../including/AppData.h"
+#include "AppDefined.h"
 
 namespace app {
 ////////////////////////////////////
-
-#define APPSTART "appstart.txt"
 
 struct ThreadData
 {

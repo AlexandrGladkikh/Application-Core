@@ -7,31 +7,10 @@
 #include <unordered_map>
 #include <string>
 #include <queue>
+#include "ModulesDefined.h"
 
 namespace modules {
 ////////////////////////////////////
-
-#define LOGMODULEDATA "logmoduledata.txt"
-
-#define NAMERCVSTART    "<nameRcv>"
-#define NAMERCVEND      "</nameRcv>"
-#define NAMESNDSTART    "<nameSnd>"
-#define NAMESNDEND      "</nameSnd>"
-#define EVENTSTART      "<event>"
-#define EVENTEND        "</event>"
-#define DATASTART       "<data>"
-#define DATAEND         "</data>"
-#define IDNODESTART     "<idNode>"
-#define IDNODEEND       "</idNode>"
-
-#define ADDDATA         "add"
-#define READDATA        "read"
-#define WRITEDATA       "write"
-#define DELDATA         "del"
-#define OWNERWAIT       "ownerwait"
-#define DELUSR          "delusr"
-#define ADDUSR          "addusr"
-#define QUIT            "quit"
 
 /* формат сообщения для хранилища
  * <nameSnd>Zack</nameSnd><event>add</event><data>good job</data>

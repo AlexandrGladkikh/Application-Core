@@ -4,23 +4,12 @@
 #pragma once
 
 #include "../including/AppData.h"
+#include "ModulesDefined.h"
 
 namespace modules {
 ////////////////////////////////////
 
 #define LOGAPPCONTROLLER "logappcontroller.txt"
-
-#define QUIT                    "quit"
-#define CREATENEWAPPCONTROLLER  "create"
-#define SETSELFID               "selfid"
-#define SETNETID                "netid"
-#define START                   "start"
-
-
-#define DATASTART               "<data>"
-#define DATAEND                 "</data>"
-#define EVENTSTART              "<event>"
-#define EVENTEND                "</event>"
 
 void* AppController(void *appData);
 
