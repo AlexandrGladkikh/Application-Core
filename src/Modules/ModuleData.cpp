@@ -1,4 +1,4 @@
-#include "ModuleData.h"
+/*#include "ModuleData.h"
 #include "../including/AppData.h"
 #include "../Wrap/Log.h"
 
@@ -375,7 +375,7 @@ void DataStorage::SetOwnerData(int idNode, std::string nameOwn)
 #define DELDATA "del"
 #define OWNERWAIT "ownerwait"
 */
-
+/*
 bool DataStorage::ExecutionEvent(app::Message& event, std::string nameRcv)
 {
     std::string &bodyMsg = event.GetBodyMsg();
@@ -503,7 +503,7 @@ void DataStorage::SetWaitData(bool flag)
 
 ////////////////////////////////////
 }
-
+*/
 
 
 

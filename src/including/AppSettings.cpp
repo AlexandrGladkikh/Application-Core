@@ -338,7 +338,7 @@ bool AppSetting::ResetSetting()
     settingData.SetNetProtocol(NetIPv4);
     settingData.SetDataRead(AllRead);
     settingData.SetDataWrite(AllWrite);
-    settingData.SetMaxModules(7);
+    settingData.SetMaxModules(6);
     settingData.SetHost("0::0");
     settingData.SetServ("15348");
     settingData.SetRatioAppContAppNet(3);

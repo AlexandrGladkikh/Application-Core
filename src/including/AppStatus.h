@@ -13,10 +13,10 @@ enum ModuleName
     NewAppModule = 1,
     NewNetModule = 2,
     controller = 3,
-    moduleData = 4,
-    appController = 5,
-    netModule = 6,
-    ModuleNameEnd = 7,
+    //moduleData = 4,
+    appController = 4,
+    netModule = 5,
+    ModuleNameEnd = 6,
     UnavailableName = -1
 };
 

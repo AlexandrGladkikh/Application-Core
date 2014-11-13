@@ -4,7 +4,7 @@
 namespace app {
 ////////////////////////////////////
 
-#define BASICMODULES 5
+#define BASICMODULES 4
 #define APPSTART "appstart.txt"
 
 ////////////////////////////////////

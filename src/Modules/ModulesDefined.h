@@ -4,19 +4,18 @@
 namespace modules {
 ////////////////////////////////////
 
-#define QUIT                    "quit"
-#define CREATENEWAPPCONTROLLER  "create"
-#define SETSELFID               "selfid"
-#define SETNETID                "netid"
-#define START                   "start"
+#define QUIT            "quit"
+#define SETSELFID       "selfid"
+#define SETNETID        "netid"
+#define START           "start"
 
-#define SHOW "show"
-#define LOG "log"
-#define EXIT "quit"
+#define SHOW            "show"
+#define LOG             "log"
+#define EXIT            "quit"
 
-#define LOGCONTROLLER "logcontroller.txt"
+#define LOGCONTROLLER   "logcontroller.txt"
 
-#define LOGMODULEDATA "logmoduledata.txt"
+#define LOGMODULEDATA   "logmoduledata.txt"
 
 #define ADDDATA         "add"
 #define READDATA        "read"
@@ -39,9 +38,18 @@ namespace modules {
 #define IDNODESTART     "<idNode>"
 #define IDNODEEND       "</idNode>"
 
-#define EXIT "quit"
-#define SET "setsetting"
-#define LIST "settingl"
+#define EXIT            "quit"
+#define SET             "setsetting"
+#define LIST            "settingl"
+
+#define ADDNEWUSR       "addnewusr"
+#define REMOVEUSR       "removeusr"
+
+#define LOGINSTART      "<login>"
+#define LOGINEND        "</login>"
+
+#define PASSSTART       "<pass>"
+#define PASSEND         "</pass>"
 
 ////////////////////////////////////
 }

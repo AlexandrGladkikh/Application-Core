@@ -57,11 +57,11 @@ bool StartX(AppData *appData)
     if (rez != 0)
         return false;
 
-    threadData.GetThread(moduleData, thread);
+    /*threadData.GetThread(moduleData, thread);
 
     rez = pthread_create(&thread, &attrObj, modules::ModuleData, appData);
     if (rez != 0)
-        return false;
+        return false;*/
 
     ////////////////////////////////////
     AppMessage &dataMsg = appData->GetMsg();

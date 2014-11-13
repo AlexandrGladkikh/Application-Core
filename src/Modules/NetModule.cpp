@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include "../Wrap/WrapNet.h"
 #include "../Wrap/UserData.h"
 #include "../Modules/AppController.h"
@@ -56,7 +57,6 @@ void Net::Process()
     socklen_t clilen;
     int connfd;
     int nReady;
-    int nRcv;
     int maxId = 1;
 
     client[0].fd = netData->socket;
@@ -145,6 +145,10 @@ void Net::Process()
             if (!HandlerLocalMsg())
                 break;
         }
+
+        HandlerNewUser();
+
+
     }
 }
 
@@ -171,6 +175,7 @@ bool Net::HandlerLocalMsg()
         }
         msg.CreateMessage("Close Netmodule\n", app::controller, app::netModule);
         appMsg.AddMessage(msg, err);
+
         return false;
     }
 
@@ -181,10 +186,10 @@ bool Net::HandlerLocalMsg()
     {
         for (int i=2; i<netData->maxUser; i++)
         {
-            if (client[i].fd != -1)
+            if (client[i].fd == -1)
             {
-                client[i] = client[usrData->GetPos()];
-                client[usrData->GetPos()].fd = -1;
+                client[i].fd = usrData->GetSock();
+                client[i].events = POLLRDNORM & POLLRDHUP;
 
                 unsigned int posInRoom;
                 unsigned int numberRoom;
@@ -204,6 +209,74 @@ bool Net::HandlerLocalMsg()
     {
         wrap::Close(client[usrData->GetPos()].fd);
         client[usrData->GetPos()].fd = -1;
+    }
+
+    return true;
+}
+
+void Net::HandlerNewUser()
+{
+    ssize_t nRcv;
+    for (int i=netData->maxUser; i<2*netData->maxUser; i++)
+    {
+        if (client[i].fd != -1 && client[i].revents & (POLLRDNORM | POLLERR | POLLRDHUP | POLLHUP))
+        {
+            while (1)
+            {
+                if ((nRcv = read(client[i].fd, buf, 1000)) == -1)
+                {
+                    if (errno == EAGAIN)
+                        break;
+                    else if (errno == EINTR)
+                        continue;
+                    else
+                    {
+                        wrap::Close(client[i].fd);
+                        client[i].fd = -1;
+                        break;
+                    }
+                }
+                else if (nRcv == 0)
+                {
+                    wrap::Close(client[i].fd);
+                    client[i].fd = -1;
+                    break;
+                }
+                else if (nRcv > 0)
+                {
+                    char usrDat[100];
+                    wrap::UserDataAdd *usrData = (wrap::UserDataAdd*) usrDat;
+                    usrData->SetSock(client[i].fd);
+                    usrData->SetPos(i);
+                    client[i].fd = -1;
+                    std::string strRequest;
+                    strRequest.append(buf);
+                    size_t loginStart = strRequest.find(LOGINSTART);
+                    size_t loginEnd = strRequest.find(LOGINEND, loginStart);
+                    size_t passStart = strRequest.find(PASSSTART, loginEnd);
+                    size_t passEnd = strRequest.find(PASSEND, passStart);
+
+                    if (loginStart != std::string::npos && loginEnd != std::string::npos && passStart != std::string::npos && passEnd != std::string::npos)
+                    {
+                        std::string login = strRequest.substr((loginStart+7), (loginEnd-loginStart));
+                        std::string pass = strRequest.substr((loginEnd+14), (passEnd-(loginEnd+14)));
+
+                        usrData->SetName(login.c_str());
+                        usrData->SetPass(pass.c_str());
+
+                        app::Message msg;
+
+                        msg.CreateMessage(usrDat, netData->appControllerId, netData->id);
+                        app::MsgError err;
+                        appMsg.AddMessage(msg, err);
+                    }
+                    else
+                        wrap::Close(client[i].fd);
+
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -322,13 +395,13 @@ void Net::CreateNewThread()
 
                 pthread_create(&threadCont, &attr, modules::AppController, appData);
 
-                pthread_attr_destroy(&attr);
+                pthread_attr_destroy(&attr);            
             }
         }
-    }
 
-    client[0].fd = -1;
-    netData->createThread = true;
+        client[0].fd = -1;
+        netData->createThread = true;
+    }
 }
 
 ChatRoom::~ChatRoom()
@@ -349,9 +422,43 @@ void ChatRoom::ChatRoomInit(int valUsr)
     availableSpace = valUsr;
 }
 
+void ChatRoom::AddPrivateMsg(PrivateMsg msg)
+{
+    queuePrivateMsg.push_back(msg);
+}
+
+void ChatRoom::AddPublicMsg(PublicMsg msg)
+{
+    queuePublicMsg.push_back(msg);
+}
+
+std::deque<PrivateMsg>::iterator ChatRoom::GetPrivateMsg()
+{
+    std::deque<PrivateMsg>::iterator it = queuePrivateMsg.begin();
+
+    return it;
+}
+
+std::deque<PublicMsg>::iterator ChatRoom::GetPublicMsg()
+{
+    std::deque<PublicMsg>::iterator it = queuePublicMsg.begin();
+
+    return it;
+}
+
+unsigned int* ChatRoom::GetUsrID()
+{
+    return usrID;
+}
+
 bool ChatRoom::CheckAvailableSpace()
 {
     return (availableSpace) ? true : false;
+}
+
+bool ChatRoom::CheckWaitHandler()
+{
+    return waitHandler;
 }
 
 unsigned int ChatRoom::AddUsr(int id)
@@ -370,6 +477,12 @@ unsigned int ChatRoom::AddUsr(int id)
     }
 
     return i;
+}
+
+void ChatRoom::RemoveUsr(unsigned int pos)
+{
+    usrID[pos] = -1;
+    availableSpace++;
 }
 
 Chat::Chat(int valRoom, int numUsrOnRoom)
@@ -394,13 +507,33 @@ void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom)
         if (chatRoom[i].CheckAvailableSpace())
         {
             posInRoom = chatRoom[i].AddUsr(id);
+            PublicMsg msg;
+            msg.idUserName = posInRoom;
+            msg.msg.append(ADDNEWUSR);
+            chatRoom[i].AddPublicMsg(msg);
             numberRoom = i;
         }
 
         i++;
     }
 
-    roomWaitHandler.push_back(i);
+    if (!chatRoom[i].CheckWaitHandler())
+        roomWaitHandler.push_back(i);
+}
+
+void Chat::RemoveUsr(unsigned int posInRoom, unsigned int numberRoom)
+{
+    chatRoom[numberRoom].RemoveUsr(posInRoom);
+
+    PublicMsg msg;
+    msg.idUserName = posInRoom;
+    msg.msg.append(REMOVEUSR);
+    chatRoom[numberRoom].AddPublicMsg(msg);
+
+    if (!chatRoom->CheckWaitHandler())
+    {
+        roomWaitHandler.push_back(numberRoom);
+    }
 }
 
 std::deque<int>::iterator Chat::GetIDRoomWaitHadler(/*int* idRoom, unsigned int* size*/)

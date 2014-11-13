@@ -76,11 +76,19 @@ struct ChatRoom
 
     void ChatRoomInit(int valUsr);
 
-    void AddPrivatMsg(PrivateMsg msg);
+    void AddPrivateMsg(PrivateMsg msg);
     void AddPublicMsg(PublicMsg msg);
 
+    std::deque<PrivateMsg>::iterator GetPrivateMsg();
+    std::deque<PublicMsg>::iterator GetPublicMsg();
+
+    unsigned int* GetUsrID();
+
     bool CheckAvailableSpace();
+    bool CheckWaitHandler();
+
     unsigned int AddUsr(int id);
+    void RemoveUsr(unsigned int pos);
 };
 
 class Chat
@@ -95,6 +103,8 @@ public:
     ~Chat();
 
      void AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom);
+     void RemoveUsr(unsigned int posInRoom, unsigned int numberRoom);
+
      std::deque<int>::iterator GetIDRoomWaitHadler(/*int* idRoom, unsigned int* size*/);
      ChatRoom* GetChatRoom(unsigned int num);
 };
@@ -115,6 +125,8 @@ private:
     int currentNumberUser;
 
     bool HandlerLocalMsg();
+
+    void HandlerNewUser();
 public:
     Net(NetData* net, app::AppData* data);
     ~Net();

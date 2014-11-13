@@ -1,4 +1,4 @@
-#ifndef MODULEDATA_H
+/*#ifndef MODULEDATA_H
 #define MODULEDATA_H
 
 #pragma once
@@ -19,7 +19,7 @@ namespace modules {
  * для разделения данных используется //
  * <nameSnd>Zack</nameSnd><data>good job</data>//<nameSnd>Zack</nameSnd><data>bad job</data}
  */
-
+/*
 struct DataStorage
 {
     int ownerIDNetNode;
@@ -44,7 +44,7 @@ struct DataStorage
  * [nameSnd]Zack[/nameSnd][nameRcv]Onito[/nameRcv][event]add[/event][data]good job[/data]
  * в случае выборочного добавления, перед передачей сообщения хренилищу idNode устанавливается из строки
  */
-
+/*
 #define BADREQUEST "badrequest"
 #define BADADDMSG "badaddmsg"
 #define NOTADD "notadd"
@@ -76,3 +76,4 @@ void* ModuleData(void *appData);
 }
 
 #endif // MODULEDATA_H
+*/
