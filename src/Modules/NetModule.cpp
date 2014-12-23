@@ -148,6 +148,7 @@ void Net::Process()
 
         HandlerNewUser();
 
+        SendData();
 
     }
 }
@@ -194,7 +195,7 @@ bool Net::HandlerLocalMsg()
                 unsigned int posInRoom;
                 unsigned int numberRoom;
 
-                chat->AddUsr(i, posInRoom, numberRoom);
+                chat->AddUsr(i, posInRoom, numberRoom, usrData->GetName());
 
                 userData[i].numberRoom = numberRoom;
                 userData[i].posInRoom = posInRoom;
@@ -207,8 +208,7 @@ bool Net::HandlerLocalMsg()
     }
     else
     {
-        wrap::Close(client[usrData->GetPos()].fd);
-        client[usrData->GetPos()].fd = -1;
+        wrap::Close(usrData->GetSock());
     }
 
     return true;
@@ -276,6 +276,107 @@ void Net::HandlerNewUser()
                     break;
                 }
             }
+        }
+    }
+}
+
+void Net::RecvData()
+{
+    ssize_t nRcv;
+
+    for (int i=0; i<netData->maxUser; i++)
+    {
+        if (client[i].fd != -1 && client[i].revents & (POLLRDNORM | POLLERR | POLLRDHUP | POLLHUP))
+        {
+            while (1)
+            {
+                if ((nRcv = read(client[i].fd, buf, 1000)) == -1)
+                {
+                    if (errno == EAGAIN)
+                        break;
+                    else if (errno == EINTR)
+                        continue;
+                    else
+                    {
+                        wrap::Close(client[i].fd);
+                        client[i].fd = -1;
+                        chat->RemoveUsr(userData[i].posInRoom, userData[i].numberRoom);
+                        break;
+                    }
+                }
+                else if (nRcv == 0)
+                {
+                    wrap::Close(client[i].fd);
+                    client[i].fd = -1;
+                    chat->RemoveUsr(userData[i].posInRoom, userData[i].numberRoom);
+                    break;
+                }
+                else if (nRcv > 0)
+                {
+                    std::string strRequest = buf;
+                    ChatRoom *chatRoom;
+                    chatRoom = chat->GetChatRoom(userData[i].numberRoom);
+
+                    if (CheckRequest(strRequest))
+                    {
+                        int rcv = atoi(strRequest.substr((strRequest.find("<nameRcv>")+9), (strRequest.find("</nameRcv>")+10)).c_str());
+                        if (rcv == -1)
+                        {
+                            PublicMsg pubMsg;
+                            pubMsg.idUserName = userData[i].posInRoom;
+                            pubMsg.msg = strRequest;
+                            chatRoom->AddPublicMsg(pubMsg);
+
+                            if (!chatRoom[i].CheckWaitHandler())
+                                chat->SetRoomWaitHandler(userData[i].numberRoom);
+                        }
+                        else
+                        {
+                            PrivateMsg prvtMsg;
+                            prvtMsg.idUserRcv = rcv;
+                            prvtMsg.idUserSnd = userData[i].posInRoom;
+                            prvtMsg.msg = strRequest;
+                            chatRoom->AddPrivateMsg(prvtMsg);
+
+                            if (!chatRoom[i].CheckWaitHandler())
+                                chat->SetRoomWaitHandler(userData[i].numberRoom);
+                        }
+
+                    }
+                    else
+                    {
+                        PrivateMsg prvtMsg;
+                        prvtMsg.idUserRcv = userData[i].posInRoom;
+                        prvtMsg.idUserSnd = -1;
+                        prvtMsg.msg = BADREQUEST;
+                        chatRoom->AddPrivateMsg(prvtMsg);
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void Net::SendData()
+{
+    int sizeWaitHandler;
+    std::deque<int>::iterator itWaitRoom = chat->GetIDRoomWaitHadler(sizeWaitHandler);
+
+    ChatRoom *room;
+
+    for (int i=0; i<sizeWaitHandler; i++)
+    {
+        room = chat->GetChatRoom(*itWaitRoom++);
+
+        int sizePrvtMsg;
+        std::deque<PrivateMsg>::iterator itPrvtMsg = room->GetPrivateMsg(sizePrvtMsg);
+        PrivateMsg prvtMsg;
+
+        for (int i=0; i<sizePrvtMsg; i++)
+        {
+            prvtMsg = *itPrvtMsg++;
         }
     }
 }
@@ -432,9 +533,10 @@ void ChatRoom::AddPublicMsg(PublicMsg msg)
     queuePublicMsg.push_back(msg);
 }
 
-std::deque<PrivateMsg>::iterator ChatRoom::GetPrivateMsg()
+std::deque<PrivateMsg>::iterator ChatRoom::GetPrivateMsg(int& size)
 {
     std::deque<PrivateMsg>::iterator it = queuePrivateMsg.begin();
+    size = queuePrivateMsg.size();
 
     return it;
 }
@@ -459,6 +561,11 @@ bool ChatRoom::CheckAvailableSpace()
 bool ChatRoom::CheckWaitHandler()
 {
     return waitHandler;
+}
+
+void ChatRoom::SetWaitHandler(bool status)
+{
+    waitHandler = status;
 }
 
 unsigned int ChatRoom::AddUsr(int id)
@@ -499,7 +606,7 @@ Chat::~Chat()
     delete[] chatRoom;
 }
 
-void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom)
+void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, const char*name)
 {
     unsigned int i = 0;
     while (i < numRoom)
@@ -507,10 +614,19 @@ void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom)
         if (chatRoom[i].CheckAvailableSpace())
         {
             posInRoom = chatRoom[i].AddUsr(id);
-            PublicMsg msg;
-            msg.idUserName = posInRoom;
-            msg.msg.append(ADDNEWUSR);
-            chatRoom[i].AddPublicMsg(msg);
+            PublicMsg pubMsg;
+            pubMsg.idUserName = posInRoom;
+            pubMsg.msg.append(ADDNEWUSR);
+            pubMsg.msg.append("//");
+            pubMsg.msg.append(name);
+            chatRoom[i].AddPublicMsg(pubMsg);
+
+            PrivateMsg prvtMsg;
+            prvtMsg.idUserSnd = -1;
+            prvtMsg.idUserRcv = posInRoom;
+            prvtMsg.msg.append(ADDNEWUSR);
+            chatRoom[i].AddPrivateMsg(prvtMsg);
+
             numberRoom = i;
         }
 
@@ -536,25 +652,22 @@ void Chat::RemoveUsr(unsigned int posInRoom, unsigned int numberRoom)
     }
 }
 
-std::deque<int>::iterator Chat::GetIDRoomWaitHadler(/*int* idRoom, unsigned int* size*/)
+std::deque<int>::iterator Chat::GetIDRoomWaitHadler(int& size)
 {
     std::deque<int>::iterator it = roomWaitHandler.begin();
-    /**size = roomWaitHandler.size();
+    size = roomWaitHandler.size();
 
-    int i = 0;
-
-    while (it != roomWaitHandler.end())
-    {
-        idRoom[i] = *it++;
-
-        i++;
-    }*/
     return it;
 }
 
 ChatRoom* Chat::GetChatRoom(unsigned int num)
 {
     return &chatRoom[num];
+}
+
+void Chat::SetRoomWaitHandler(unsigned int num)
+{
+    roomWaitHandler.push_back(num);
 }
 
 bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& dataSttng)

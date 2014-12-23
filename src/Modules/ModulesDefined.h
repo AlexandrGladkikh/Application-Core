@@ -51,6 +51,8 @@ namespace modules {
 #define PASSSTART       "<pass>"
 #define PASSEND         "</pass>"
 
+#define BADREQUEST      "BADREQUEST"
+
 ////////////////////////////////////
 }
 

@@ -45,8 +45,8 @@ struct UserData
 
 struct PrivateMsg
 {
-    unsigned int idUserSnd;
-    unsigned int idUserRcv;
+    int idUserSnd;
+    int idUserRcv;
 
     std::string msg;
 
@@ -79,13 +79,14 @@ struct ChatRoom
     void AddPrivateMsg(PrivateMsg msg);
     void AddPublicMsg(PublicMsg msg);
 
-    std::deque<PrivateMsg>::iterator GetPrivateMsg();
+    std::deque<PrivateMsg>::iterator GetPrivateMsg(int& size);
     std::deque<PublicMsg>::iterator GetPublicMsg();
 
     unsigned int* GetUsrID();
 
     bool CheckAvailableSpace();
     bool CheckWaitHandler();
+    void SetWaitHandler(bool status);
 
     unsigned int AddUsr(int id);
     void RemoveUsr(unsigned int pos);
@@ -102,11 +103,12 @@ public:
     Chat(int valRoom, int numUsrOnRoom);
     ~Chat();
 
-     void AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom);
+     void AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, const char* name);
      void RemoveUsr(unsigned int posInRoom, unsigned int numberRoom);
 
-     std::deque<int>::iterator GetIDRoomWaitHadler(/*int* idRoom, unsigned int* size*/);
+     std::deque<int>::iterator GetIDRoomWaitHadler(int &size);
      ChatRoom* GetChatRoom(unsigned int num);
+     void SetRoomWaitHandler(unsigned int num);
 };
 
 class Net
@@ -125,8 +127,9 @@ private:
     int currentNumberUser;
 
     bool HandlerLocalMsg();
-
     void HandlerNewUser();
+    void SendData();
+    void RecvData();
 public:
     Net(NetData* net, app::AppData* data);
     ~Net();
