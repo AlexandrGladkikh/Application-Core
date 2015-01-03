@@ -37,14 +37,11 @@ HEADERS += \
     ../Modules/ModulesDefined.h
 
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/release/ -lAppcontroller
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/debug/ -lAppcontroller
-else:symbian: LIBS += -lAppcontroller
-else:unix: LIBS += -L$$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/ -lAppcontroller
 
-INCLUDEPATH += $$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release
-DEPENDPATH += $$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release
 
-win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/release/Appcontroller.lib
-else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/debug/Appcontroller.lib
-else:unix:!symbian: PRE_TARGETDEPS += $$PWD/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/libAppcontroller.a
+unix:!macx: LIBS += -L$$PWD/../../appcontroller/AppController/ -lAppcontroller
+
+INCLUDEPATH += $$PWD/../../appcontroller/AppController
+DEPENDPATH += $$PWD/../../appcontroller/AppController
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../../appcontroller/AppController/libAppcontroller.a

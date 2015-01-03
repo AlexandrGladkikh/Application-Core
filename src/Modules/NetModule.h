@@ -31,16 +31,10 @@ struct UserData
 {
     std::string name;
 
-    std::string rcvBuf;
-
     std::string sndBuf;
 
     int numberRoom;
     int posInRoom;
-
-    int size;
-
-    int readSize;
 };
 
 struct PrivateMsg
@@ -49,7 +43,6 @@ struct PrivateMsg
     int idUserRcv;
 
     std::string msg;
-
 };
 
 struct PublicMsg
@@ -80,9 +73,12 @@ struct ChatRoom
     void AddPublicMsg(PublicMsg msg);
 
     std::deque<PrivateMsg>::iterator GetPrivateMsg(int& size);
-    std::deque<PublicMsg>::iterator GetPublicMsg();
+    std::deque<PublicMsg>::iterator GetPublicMsg(int& size);
+    void ErasePublicMsg(std::deque<PublicMsg>::iterator itPublicMsg);
+    void ErasePrivateMsg(std::deque<PrivateMsg>::iterator itPrivateMsg);
 
     unsigned int* GetUsrID();
+    unsigned int GetUsr(int pos);
 
     bool CheckAvailableSpace();
     bool CheckWaitHandler();

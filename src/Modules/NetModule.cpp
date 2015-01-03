@@ -148,8 +148,9 @@ void Net::Process()
 
         HandlerNewUser();
 
-        SendData();
+        RecvData();
 
+        SendData();
     }
 }
 
@@ -258,7 +259,7 @@ void Net::HandlerNewUser()
 
                     if (loginStart != std::string::npos && loginEnd != std::string::npos && passStart != std::string::npos && passEnd != std::string::npos)
                     {
-                        std::string login = strRequest.substr((loginStart+7), (loginEnd-loginStart));
+                        std::string login = strRequest.substr((loginStart+7), (loginEnd-(loginStart+7)));
                         std::string pass = strRequest.substr((loginEnd+14), (passEnd-(loginEnd+14)));
 
                         usrData->SetName(login.c_str());
@@ -313,13 +314,14 @@ void Net::RecvData()
                 }
                 else if (nRcv > 0)
                 {
-                    std::string strRequest = buf;
+                    std::string strRequest;
+                    strRequest.append(buf, nRcv);
                     ChatRoom *chatRoom;
                     chatRoom = chat->GetChatRoom(userData[i].numberRoom);
 
                     if (CheckRequest(strRequest))
                     {
-                        int rcv = atoi(strRequest.substr((strRequest.find("<nameRcv>")+9), (strRequest.find("</nameRcv>")+10)).c_str());
+                        int rcv = atoi(strRequest.substr((strRequest.find("<nameRcv>")+9), strRequest.find("</nameRcv>")).c_str());
                         if (rcv == -1)
                         {
                             PublicMsg pubMsg;
@@ -348,7 +350,9 @@ void Net::RecvData()
                         PrivateMsg prvtMsg;
                         prvtMsg.idUserRcv = userData[i].posInRoom;
                         prvtMsg.idUserSnd = -1;
-                        prvtMsg.msg = BADREQUEST;
+                        prvtMsg.msg.append(MSGSTART);
+                        prvtMsg.msg.append(BADREQUEST);
+                        prvtMsg.msg.append(MSGEND);
                         chatRoom->AddPrivateMsg(prvtMsg);
                     }
 
@@ -365,18 +369,129 @@ void Net::SendData()
     std::deque<int>::iterator itWaitRoom = chat->GetIDRoomWaitHadler(sizeWaitHandler);
 
     ChatRoom *room;
+    int nSnd;
+    int sizePrvtMsg;
+    PrivateMsg prvtMsg;
+    std::deque<PrivateMsg>::iterator itPrvtMsg;
+    PublicMsg pubMsg;
+    int sizePublicMsg;
+    std::deque<PublicMsg>::iterator itPublicMsg;
+    unsigned int* usrInRoom;
 
     for (int i=0; i<sizeWaitHandler; i++)
     {
         room = chat->GetChatRoom(*itWaitRoom++);
 
-        int sizePrvtMsg;
-        std::deque<PrivateMsg>::iterator itPrvtMsg = room->GetPrivateMsg(sizePrvtMsg);
-        PrivateMsg prvtMsg;
+        itPrvtMsg = room->GetPrivateMsg(sizePrvtMsg);
 
         for (int i=0; i<sizePrvtMsg; i++)
         {
-            prvtMsg = *itPrvtMsg++;
+            prvtMsg = *itPrvtMsg;
+
+            if (client[room->GetUsr(prvtMsg.idUserSnd)].fd != -1)
+            while (1)
+            {
+                userData[room->GetUsr(prvtMsg.idUserSnd)].sndBuf.append(prvtMsg.msg);
+                room->ErasePrivateMsg(itPrvtMsg);
+
+                nSnd = write(client[room->GetUsr(prvtMsg.idUserSnd)].fd, userData[room->GetUsr(prvtMsg.idUserSnd)].sndBuf.c_str(), userData[room->GetUsr(prvtMsg.idUserSnd)].sndBuf.length());
+
+                if (nSnd == -1 && errno == EINTR)
+                    continue;
+                if (nSnd == -1 && errno == EAGAIN)
+                    client[room->GetUsr(prvtMsg.idUserSnd)].events = client[room->GetUsr(prvtMsg.idUserSnd)].events | POLLOUT;
+                else if (nSnd == -1 && errno == EPIPE)
+                {
+                    chat->RemoveUsr(userData[room->GetUsr(prvtMsg.idUserSnd)].posInRoom, userData[room->GetUsr(prvtMsg.idUserSnd)].numberRoom);
+                    wrap::Close(client[room->GetUsr(prvtMsg.idUserSnd)].fd);
+                    client[room->GetUsr(prvtMsg.idUserSnd)].fd = -1;
+                }
+                else if (nSnd == userData[room->GetUsr(prvtMsg.idUserSnd)].sndBuf.length())
+                {
+                    if (client[room->GetUsr(prvtMsg.idUserSnd)].events & POLLOUT)
+                        client[room->GetUsr(prvtMsg.idUserSnd)].events ^ POLLOUT;
+                    userData[room->GetUsr(prvtMsg.idUserSnd)].sndBuf.clear();
+                }
+                else if (nSnd < userData[room->GetUsr(prvtMsg.idUserSnd)].sndBuf.length())
+                {
+                    client[room->GetUsr(prvtMsg.idUserSnd)].events = client[room->GetUsr(prvtMsg.idUserSnd)].events | POLLOUT;
+                    userData[room->GetUsr(prvtMsg.idUserSnd)].sndBuf.erase(nSnd);
+                }
+
+                break;
+            }
+
+            itPrvtMsg++;
+        }
+
+        itPublicMsg = room->GetPublicMsg(sizePublicMsg);
+
+        for (int i=0; i<sizePublicMsg; i++)
+        {
+            pubMsg = *itPublicMsg;
+            usrInRoom = room->GetUsrID();
+
+            for (int i=0; i<netData->userOnchatRoom; i++)
+            {
+                if (usrInRoom[i] != -1)
+                    while (1)
+                    {
+                        userData[usrInRoom[i]].sndBuf.append(pubMsg.msg);
+
+                        nSnd = write(client[usrInRoom[i]].fd, userData[usrInRoom[i]].sndBuf.c_str(), userData[usrInRoom[i]].sndBuf.length());
+
+                        if (nSnd == -1 && errno == EINTR)
+                            continue;
+                        if (nSnd == -1 && errno == EAGAIN)
+                            client[usrInRoom[i]].events = client[usrInRoom[i]].events | POLLOUT;
+                        else if (nSnd == -1 && errno == EPIPE)
+                        {
+                            chat->RemoveUsr(userData[usrInRoom[i]].posInRoom, userData[usrInRoom[i]].numberRoom);
+                            wrap::Close(client[usrInRoom[i]].fd);
+                            client[usrInRoom[i]].fd = -1;
+                        }
+                         else if (nSnd == userData[usrInRoom[i]].sndBuf.length())
+                        {
+                            if (client[usrInRoom[i]].events & POLLOUT)
+                                client[usrInRoom[i]].events = client[usrInRoom[i]].events ^ POLLOUT;
+                            userData[usrInRoom[i]].sndBuf.clear();
+                        }
+                        else if (nSnd < userData[usrInRoom[i]].sndBuf.length())
+                        {
+                            client[usrInRoom[i]].events = client[usrInRoom[i]].events | POLLOUT;
+                            userData[usrInRoom[i]].sndBuf.erase(nSnd);
+                        }
+
+                        break;
+                    }
+            }
+
+            room->ErasePublicMsg(itPublicMsg);
+            itPublicMsg++;
+        }
+
+    }
+
+    for (int i=0; i<netData->maxUser; i++)
+    {
+        if (client[i].fd != -1 && client[i].events & POLLOUT)
+        {
+            nSnd = write(client[i].fd, userData[i].sndBuf.c_str(), userData[i].sndBuf.length());
+
+            if (nSnd == -1 && errno == EPIPE)
+            {
+                chat->RemoveUsr(userData[usrInRoom[i]].posInRoom, userData[usrInRoom[i]].numberRoom);
+                wrap::Close(client[usrInRoom[i]].fd);
+                client[usrInRoom[i]].fd = -1;
+            }
+            else if (nSnd == userData[i].sndBuf.length())
+            {
+                client[usrInRoom[i]].events = client[usrInRoom[i]].events ^ POLLOUT;
+                userData[i].sndBuf.clear();
+            }
+            else if (nSnd < userData[i].sndBuf.length())\
+                userData[i].sndBuf.erase(nSnd);\
+
         }
     }
 }
@@ -541,16 +656,32 @@ std::deque<PrivateMsg>::iterator ChatRoom::GetPrivateMsg(int& size)
     return it;
 }
 
-std::deque<PublicMsg>::iterator ChatRoom::GetPublicMsg()
+std::deque<PublicMsg>::iterator ChatRoom::GetPublicMsg(int& size)
 {
     std::deque<PublicMsg>::iterator it = queuePublicMsg.begin();
+    size = queuePublicMsg.size();
 
     return it;
+}
+
+void ChatRoom::ErasePrivateMsg(std::deque<PrivateMsg>::iterator itPrivateMsg)
+{
+    queuePrivateMsg.erase(itPrivateMsg);
+}
+
+void ChatRoom::ErasePublicMsg(std::deque<PublicMsg>::iterator itPublicMsg)
+{
+    queuePublicMsg.erase(itPublicMsg);
 }
 
 unsigned int* ChatRoom::GetUsrID()
 {
     return usrID;
+}
+
+unsigned int ChatRoom::GetUsr(int pos)
+{
+    return usrID[pos];
 }
 
 bool ChatRoom::CheckAvailableSpace()
@@ -616,15 +747,22 @@ void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, con
             posInRoom = chatRoom[i].AddUsr(id);
             PublicMsg pubMsg;
             pubMsg.idUserName = posInRoom;
+            pubMsg.msg.append(MSGSTART);
             pubMsg.msg.append(ADDNEWUSR);
             pubMsg.msg.append("//");
             pubMsg.msg.append(name);
+            pubMsg.msg.append("//");
+            char buff[10];
+            sprintf(buff, "%d", posInRoom);
+            pubMsg.msg.append(MSGEND);
             chatRoom[i].AddPublicMsg(pubMsg);
 
             PrivateMsg prvtMsg;
             prvtMsg.idUserSnd = -1;
             prvtMsg.idUserRcv = posInRoom;
+            prvtMsg.msg.append(MSGSTART);
             prvtMsg.msg.append(ADDNEWUSR);
+            prvtMsg.msg.append(MSGEND);
             chatRoom[i].AddPrivateMsg(prvtMsg);
 
             numberRoom = i;
@@ -643,7 +781,13 @@ void Chat::RemoveUsr(unsigned int posInRoom, unsigned int numberRoom)
 
     PublicMsg msg;
     msg.idUserName = posInRoom;
+    msg.msg.append(MSGSTART);
     msg.msg.append(REMOVEUSR);
+    msg.msg.append("//");
+    char buff[10];
+    sprintf(buff, "%d", posInRoom);
+    msg.msg.append(buff);
+    msg.msg.append(MSGEND);
     chatRoom[numberRoom].AddPublicMsg(msg);
 
     if (!chatRoom->CheckWaitHandler())
