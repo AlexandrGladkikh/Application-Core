@@ -15,10 +15,10 @@ CXX           = g++
 DEFINES       = -DQT_QML_DEBUG -DQT_DECLARATIVE_DEBUG
 CFLAGS        = -m64 -pipe -g -Wall -W -fPIE $(DEFINES)
 CXXFLAGS      = -m64 -pipe -std=c++11 -g -Wall -W -fPIE $(DEFINES)
-INCPATH       = -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I../src/Application -I../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release -I.
+INCPATH       = -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I../src/Application -I../appcontroller/AppController -I.
 LINK          = g++
 LFLAGS        = -m64
-LIBS          = $(SUBLIBS) -lpthread -L/home/onito/Документы/pet_project/Application-Core/src/Application/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/ -lAppcontroller 
+LIBS          = $(SUBLIBS) -lpthread -L/home/alex/Документы/pet_project/Application-Core/src/Application/../../appcontroller/AppController/ -lAppcontroller 
 AR            = ar cqs
 RANLIB        = 
 QMAKE         = /usr/lib/x86_64-linux-gnu/qt5/bin/qmake
@@ -158,7 +158,7 @@ first: all
 
 all: Makefile $(TARGET)
 
-$(TARGET): /home/onito/Документы/pet_project/Application-Core/src/Application/../../appcontroller/Appcontroller-build-desktop-Qt_4_8_2_in_PATH__System__Release/libAppcontroller.a $(OBJECTS)  
+$(TARGET): /home/alex/Документы/pet_project/Application-Core/src/Application/../../appcontroller/AppController/libAppcontroller.a $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 	{ test -n "$(DESTDIR)" && DESTDIR="$(DESTDIR)" || DESTDIR=.; } && test $$(gdb --version | sed -e 's,[^0-9][^0-9]*\([0-9]\)\.\([0-9]\).*,\1\2,;q') -gt 72 && gdb --nx --batch --quiet -ex 'set confirm off' -ex "save gdb-index $$DESTDIR" -ex quit '$(TARGET)' && test -f $(TARGET).gdb-index && objcopy --add-section '.gdb_index=$(TARGET).gdb-index' --set-section-flags '.gdb_index=readonly' '$(TARGET)' '$(TARGET)' && rm -f $(TARGET).gdb-index || true
 
@@ -311,6 +311,7 @@ main.o: ../src/Application/main.cpp ../src/including/AppStart.h \
 		../src/including/AppData.h \
 		../src/including/AppMessage.h \
 		../src/including/AppStatus.h \
+		../src/including/AppDefined.h \
 		../src/including/AppSettings.h \
 		../src/Modules/UI.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../src/Application/main.cpp
@@ -320,6 +321,7 @@ AppStatus.o: ../src/including/AppStatus.cpp ../src/including/AppStatus.h
 
 AppMessage.o: ../src/including/AppMessage.cpp ../src/including/AppMessage.h \
 		../src/including/AppStatus.h \
+		../src/including/AppDefined.h \
 		../src/Wrap/WrapNet.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o AppMessage.o ../src/including/AppMessage.cpp
 
@@ -329,6 +331,7 @@ AppSettings.o: ../src/including/AppSettings.cpp ../src/including/AppSettings.h
 AppData.o: ../src/including/AppData.cpp ../src/including/AppData.h \
 		../src/including/AppMessage.h \
 		../src/including/AppStatus.h \
+		../src/including/AppDefined.h \
 		../src/including/AppSettings.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o AppData.o ../src/including/AppData.cpp
 
@@ -336,8 +339,10 @@ AppStart.o: ../src/including/AppStart.cpp ../src/including/AppStart.h \
 		../src/including/AppData.h \
 		../src/including/AppMessage.h \
 		../src/including/AppStatus.h \
+		../src/including/AppDefined.h \
 		../src/including/AppSettings.h \
 		../src/Modules/Controller.h \
+		../src/Modules/ModulesDefined.h \
 		../src/Modules/ModuleData.h \
 		../src/Modules/AppController.h \
 		../src/Modules/NetModule.h \
@@ -349,33 +354,36 @@ Controller.o: ../src/Modules/Controller.cpp ../src/Modules/Controller.h \
 		../src/including/AppData.h \
 		../src/including/AppMessage.h \
 		../src/including/AppStatus.h \
+		../src/including/AppDefined.h \
 		../src/including/AppSettings.h \
+		../src/Modules/ModulesDefined.h \
 		../src/Wrap/Log.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Controller.o ../src/Modules/Controller.cpp
 
-ModuleData.o: ../src/Modules/ModuleData.cpp ../src/Modules/ModuleData.h \
-		../src/including/AppData.h \
-		../src/including/AppMessage.h \
-		../src/including/AppStatus.h \
-		../src/including/AppSettings.h \
-		../src/Wrap/Log.h
+ModuleData.o: ../src/Modules/ModuleData.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o ModuleData.o ../src/Modules/ModuleData.cpp
 
 AppController.o: ../src/Modules/AppController.cpp ../src/Modules/AppController.h \
 		../src/including/AppData.h \
 		../src/including/AppMessage.h \
 		../src/including/AppStatus.h \
+		../src/including/AppDefined.h \
 		../src/including/AppSettings.h \
+		../src/Modules/ModulesDefined.h \
 		../src/Wrap/Log.h \
-		../appcontroller/Appcontroller/appcont.h
+		../appcontroller/Appcontroller/appcont.h \
+		../src/Wrap/UserData.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o AppController.o ../src/Modules/AppController.cpp
 
 NetModule.o: ../src/Modules/NetModule.cpp ../src/Modules/NetModule.h \
 		../src/including/AppData.h \
 		../src/including/AppMessage.h \
 		../src/including/AppStatus.h \
+		../src/including/AppDefined.h \
 		../src/including/AppSettings.h \
+		../src/Modules/ModulesDefined.h \
 		../src/Wrap/WrapNet.h \
+		../src/Wrap/UserData.h \
 		../src/Modules/AppController.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o NetModule.o ../src/Modules/NetModule.cpp
 
@@ -383,6 +391,7 @@ UI.o: ../src/Modules/UI.cpp ../src/Modules/UI.h \
 		../src/including/AppData.h \
 		../src/including/AppMessage.h \
 		../src/including/AppStatus.h \
+		../src/including/AppDefined.h \
 		../src/including/AppSettings.h \
 		../src/Wrap/WrapNet.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o UI.o ../src/Modules/UI.cpp
