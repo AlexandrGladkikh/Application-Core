@@ -52,7 +52,8 @@ HandlerAppController::HandlerAppController(app::AppData *appData) : dataMsg(appD
 
 bool HandlerAppController::handler(app::Message &event)
 {
-    std::string &bodyMsg = event.GetBodyMsg();
+    const char *textMsg = event.GetBodyMsg();
+    std::string bodyMsg = textMsg;
 
     if(!bodyMsg.compare(QUIT))
     {
@@ -76,16 +77,16 @@ bool HandlerAppController::handler(app::Message &event)
 
         return false;
     }
-    else
-    {
-        wrap::Log("Error parse message\n", LOGAPPCONTROLLER);
-        return true;
-    }
 
     if (AppCont(event))
     {
         app::MsgError err;
         dataMsg.AddMessage(event, err);
+        return true;
+    }
+    else
+    {
+        wrap::Log("Error parse message\n", LOGAPPCONTROLLER);
         return true;
     }
 
@@ -105,7 +106,8 @@ int AppControllerInit(HandlerAppController* handler, app::AppMessage *dataMsg)
 
     dataMsg->GetMessage(msg, err);
 
-    std::string &bodyMsg = msg.GetBodyMsg();
+    const char* textMsg = msg.GetBodyMsg();
+    std::string bodyMsg = textMsg;
 
     if (msg.GetSnd() == app::controller)
     {

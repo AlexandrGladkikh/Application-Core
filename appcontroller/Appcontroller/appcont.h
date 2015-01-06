@@ -2,6 +2,7 @@
 #define APPCONT_H
 
 #include "../../src/including/AppData.h"
+#include "../../src/Wrap/UserData.h"
 
 bool AppCont(app::Message& msg);
 

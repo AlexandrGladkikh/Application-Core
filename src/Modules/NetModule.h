@@ -99,7 +99,7 @@ public:
     Chat(int valRoom, int numUsrOnRoom);
     ~Chat();
 
-     void AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, const char* name);
+     void AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, const char* name, int maxUser, UserData *usrData);
      void RemoveUsr(unsigned int posInRoom, unsigned int numberRoom);
 
      std::deque<int>::iterator GetIDRoomWaitHadler(int &size);

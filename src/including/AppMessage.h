@@ -5,6 +5,7 @@
 
 #include "AppStatus.h"
 #include <string>
+#include <string.h>
 #include <queue>
 #include <pthread.h>
 #include "AppDefined.h"
@@ -24,7 +25,7 @@ namespace app {
         int receiver;
         int sender;
 
-        std::string bodyMessage;
+        char bodyMessage[1000];
 
         size_t lengthMessage;
 
@@ -38,7 +39,7 @@ namespace app {
 
         int GetRcv();
         int GetSnd();
-        std::string& GetBodyMsg();
+        const char* GetBodyMsg();
         size_t GetLength();
     };
 

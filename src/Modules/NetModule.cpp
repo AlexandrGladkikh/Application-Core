@@ -168,7 +168,10 @@ bool Net::HandlerLocalMsg()
 
     appMsg.GetMessage(msg, err);
 
-    if (!msg.GetBodyMsg().compare(QUIT) && msg.GetSnd() == app::controller)
+    const char* textMsg = msg.GetBodyMsg();
+    std::string bodyMsg = textMsg;
+
+    if (!bodyMsg.compare(QUIT) && msg.GetSnd() == app::controller)
     {
         for (int i=2; i<2*netData->maxUser; i++)
         {
@@ -181,8 +184,8 @@ bool Net::HandlerLocalMsg()
         return false;
     }
 
-    std::string& bodyMsg= msg.GetBodyMsg();
-    wrap::UserDataAdd *usrData = (wrap::UserDataAdd*)bodyMsg.c_str();
+    //std::string& bodyMsg= msg.GetBodyMsg();
+    wrap::UserDataAdd *usrData = (wrap::UserDataAdd*)textMsg;
 
     if (usrData->CheckFlag())
     {
@@ -196,7 +199,7 @@ bool Net::HandlerLocalMsg()
                 unsigned int posInRoom;
                 unsigned int numberRoom;
 
-                chat->AddUsr(i, posInRoom, numberRoom, usrData->GetName());
+                chat->AddUsr(i, posInRoom, numberRoom, usrData->GetName(), netData->userOnchatRoom, userData);
 
                 userData[i].numberRoom = numberRoom;
                 userData[i].posInRoom = posInRoom;
@@ -737,7 +740,7 @@ Chat::~Chat()
     delete[] chatRoom;
 }
 
-void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, const char*name)
+void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, const char*name, int maxUser, UserData *usrData)
 {
     unsigned int i = 0;
     while (i < numRoom)
@@ -762,6 +765,20 @@ void Chat::AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, con
             prvtMsg.idUserRcv = posInRoom;
             prvtMsg.msg.append(MSGSTART);
             prvtMsg.msg.append(ADDNEWUSR);
+            prvtMsg.msg.append("//");
+
+            unsigned int *usrID = chatRoom[i].GetUsrID();
+            for (int i=0; i<maxUser; i++)
+            {
+                if (usrID[i] != -1)
+                {
+                    sprintf(buff, "%d", i);
+                    prvtMsg.msg.append(buff);
+                    prvtMsg.msg.append("/");
+                    prvtMsg.msg.append(usrData[usrID[i]].name.c_str());
+                    prvtMsg.msg.append("//");
+                }
+            }
             prvtMsg.msg.append(MSGEND);
             chatRoom[i].AddPrivateMsg(prvtMsg);
 
@@ -836,7 +853,8 @@ bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
         return false;
     }
 
-    std::string &bodyMsg = msg.GetBodyMsg();
+    const char* textMsg = msg.GetBodyMsg();
+    std::string bodyMsg = textMsg;
 
     size_t second;
 

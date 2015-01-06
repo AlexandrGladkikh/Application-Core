@@ -55,5 +55,10 @@ bool UserDataAdd::CheckFlag()
     return (flagAdd) ? true : false;
 }
 
+void UserDataAdd::SetFlag(bool val)
+{
+    flagAdd = val;
+}
+
 ////////////////////////////////////
 }

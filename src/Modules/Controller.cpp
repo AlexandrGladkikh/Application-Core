@@ -63,7 +63,7 @@ void InitUILink(app::AppMessage* dataMsg, UILink* link)
     dataMsg->GetMessage(msg, err);
 
     if (err == app::ErrorNot)
-        link->SetLink(atoi(msg.GetBodyMsg().c_str()));
+        link->SetLink(atoi(msg.GetBodyMsg()));
     else
     {
         wrap::Log("Error set link to UI\n", LOGCONTROLLER);
@@ -191,7 +191,7 @@ bool ControllerHandler::EventHandler(int behaviorEvent, std::string param)
         for (int i=0; i<countModules-BASICMODULES; i++)
         {
             dataMsg->GetMessage(msg, err);
-            wrap::Log(msg.GetBodyMsg().c_str(), LOGCONTROLLER);
+            wrap::Log(msg.GetBodyMsg(), LOGCONTROLLER);
         }
         return false;
     }

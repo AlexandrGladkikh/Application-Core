@@ -32,6 +32,7 @@ struct UserDataAdd
     const char* GetPass();
 
     bool CheckFlag();
+    void SetFlag(bool val);
 };
 
 }

@@ -9,7 +9,7 @@ namespace app {
 
 Message::Message()
 {
-    bodyMessage = "";
+    //bodyMessage = "";
     lengthMessage = 0;
     receiver = UnavailableName;
     sender = UnavailableName;
@@ -22,12 +22,14 @@ Message::~Message()
 
 bool Message::CreateMessage(const char* textmsg, int rcv, int snd)
 {
-    if (sizeof(textmsg) == 0)
-        bodyMessage = "";
-    else
-        bodyMessage = textmsg;
+    if (!strlen(textmsg) == 0)
+     //   bodyMessage = "";
+    //else
+    {
+        memcpy(bodyMessage, textmsg, strlen(textmsg)+1);
+    }
 
-    lengthMessage = bodyMessage.size();
+    lengthMessage = strlen(bodyMessage);
 
     receiver = rcv;
     sender = snd;
@@ -47,8 +49,8 @@ void Message::SetSnd(int snd)
 
 void Message::SetBodyMsg(std::string str)
 {
-    bodyMessage = str;
-    lengthMessage = bodyMessage.size();
+    memcpy(bodyMessage, str.c_str(), str.length());
+    lengthMessage = strlen(bodyMessage);
 }
 
 int Message::GetRcv()
@@ -61,7 +63,7 @@ int Message::GetSnd()
     return sender;
 }
 
-std::string& Message::GetBodyMsg()
+const char* Message::GetBodyMsg()
 {
     return bodyMessage;
 }
