@@ -1,8 +1,6 @@
 #ifndef USERDATA_H
 #define USERDATA_H
 
-#include <string>
-
 namespace wrap {
 ////////////////////////////////////
 
@@ -13,14 +11,14 @@ struct UserDataAdd
     unsigned int position; // позиция в массиве client
     unsigned int socket;
 
-    std::string name;
-    std::string pass;
+    char name[20];
+    char pass[20];
 
     UserDataAdd() { }
     ~UserDataAdd() { }
 
-    void SetPos(unsigned int pos);
-    unsigned int GetPos();
+    void SetPosition(unsigned int pos);
+    unsigned int GetPosition();
 
     void SetName(const char* nam);
     const char* GetName();

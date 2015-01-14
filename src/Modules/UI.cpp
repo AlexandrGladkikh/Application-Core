@@ -298,7 +298,7 @@ bool UIHandler::EventHandler(int behaviorEvent, const char* param)
             else if (!strcmp(param, "-setMaxThread"))
             {
                 int value;
-                std::cout << "Введите максимальное количество модулей(>7)" << std::endl;
+                std::cout << "Введите максимальное количество модулей(>5)" << std::endl;
                 do
                 {
                 std::cin >> value;

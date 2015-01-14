@@ -20,8 +20,8 @@ UnavailableEvent = -1
 };
 
 #define EXIT "quit"
-#define SET "setsetting"
-#define LIST "settingl"
+#define SET  "s"
+#define LIST "l"
 #define SHOW "show"
 
 struct EventData

@@ -6,13 +6,10 @@ namespace  wrap {
 
 void UserDataAdd::SetName(const char *nam)
 {
-    if (strlen(nam) != 0)
-        name = nam;
-    else
-        name = "";
+        memcpy(name, nam, 100);
 }
 
-void UserDataAdd::SetPos(unsigned int pos)
+void UserDataAdd::SetPosition(unsigned int pos)
 {
     position = pos;
 }
@@ -24,18 +21,15 @@ void UserDataAdd::SetSock(unsigned int sock)
 
 void UserDataAdd::SetPass(const char *strPass)
 {
-    if (strlen(strPass) != 0)
-        pass = strPass;
-    else
-        pass = "";
+        memcpy(pass, strPass, 100);
 }
 
 const char* UserDataAdd::GetName()
 {
-    return name.c_str();
+    return name;
 }
 
-unsigned int UserDataAdd::GetPos()
+unsigned int UserDataAdd::GetPosition()
 {
     return position;
 }
@@ -47,7 +41,7 @@ unsigned int UserDataAdd::GetSock()
 
 const char* UserDataAdd::GetPass()
 {
-    return pass.c_str();
+    return pass;
 }
 
 bool UserDataAdd::CheckFlag()

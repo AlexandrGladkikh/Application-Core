@@ -18,7 +18,7 @@ CXXFLAGS      = -m64 -pipe -std=c++11 -O2 -Wall -W -fPIE $(DEFINES)
 INCPATH       = -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I../../src/Application -I../../appcontroller/AppController -I.
 LINK          = g++
 LFLAGS        = -m64 -Wl,-O1
-LIBS          = $(SUBLIBS) -lpthread -L/home/onito/Документы/pet_project/Application-Core/src/Application/../../appcontroller/AppController/ -lAppcontroller 
+LIBS          = $(SUBLIBS) -lpthread -L/home/alex/Документы/pet_project/Application-Core/src/Application/../../appcontroller/AppController/ -lAppcontroller 
 AR            = ar cqs
 RANLIB        = 
 QMAKE         = /usr/lib/x86_64-linux-gnu/qt5/bin/qmake
@@ -156,7 +156,7 @@ first: all
 
 all: Makefile $(TARGET)
 
-$(TARGET): /home/onito/Документы/pet_project/Application-Core/src/Application/../../appcontroller/AppController/libAppcontroller.a $(OBJECTS)  
+$(TARGET): /home/alex/Документы/pet_project/Application-Core/src/Application/../../appcontroller/AppController/libAppcontroller.a $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 Makefile: ../../src/Application/Application.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64/qmake.conf /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -364,7 +364,8 @@ AppController.o: ../../src/Modules/AppController.cpp ../../src/Modules/AppContro
 		../../src/including/AppSettings.h \
 		../../src/Modules/ModulesDefined.h \
 		../../src/Wrap/Log.h \
-		../../appcontroller/Appcontroller/appcont.h
+		../../appcontroller/Appcontroller/appcont.h \
+		../../src/Wrap/UserData.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o AppController.o ../../src/Modules/AppController.cpp
 
 NetModule.o: ../../src/Modules/NetModule.cpp ../../src/Modules/NetModule.h \

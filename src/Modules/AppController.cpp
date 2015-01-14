@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <iostream>
+
 namespace modules {
 ////////////////////////////////////
 
@@ -80,7 +82,11 @@ bool HandlerAppController::handler(app::Message &event)
 
     if (AppCont(event))
     {
+        std::cout << "Получение аутентификационных данных пользователя " << std::endl;
+        std::cout.flush();
         app::MsgError err;
+        event.SetRcv(event.GetSnd());
+        event.SetSnd(selfID);
         dataMsg.AddMessage(event, err);
         return true;
     }
@@ -96,6 +102,11 @@ bool HandlerAppController::handler(app::Message &event)
 inline void HandlerAppController::SetSelfID(int id)
 {
     selfID = id;
+}
+
+inline void HandlerAppController::SetNetID(int id)
+{
+    netID = id;
 }
 
 int AppControllerInit(HandlerAppController* handler, app::AppMessage *dataMsg)
@@ -140,6 +151,9 @@ int AppControllerInit(HandlerAppController* handler, app::AppMessage *dataMsg)
     msg.CreateMessage(bodyMsg.c_str(), newNetID, newID);
 
     dataMsg->AddMessage(msg, err);
+
+    std::cout << "инициализация модуля appcontroller завершена успешна" << std::endl;
+    std::cout.flush();
 
     return newID;
 }

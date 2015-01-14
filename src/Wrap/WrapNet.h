@@ -15,7 +15,7 @@ namespace wrap {
 #define bzero(ptr, n)   memset(ptr, 0, n)
 #endif
 
-#define LISTENQ 15000
+#define LISTENQ 5
 
 int Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
 

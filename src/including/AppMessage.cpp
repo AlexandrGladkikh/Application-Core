@@ -22,11 +22,11 @@ Message::~Message()
 
 bool Message::CreateMessage(const char* textmsg, int rcv, int snd)
 {
-    if (!strlen(textmsg) == 0)
+    if (strlen(textmsg) != 0)
      //   bodyMessage = "";
     //else
     {
-        memcpy(bodyMessage, textmsg, strlen(textmsg)+1);
+        memcpy(bodyMessage, textmsg, 100);
     }
 
     lengthMessage = strlen(bodyMessage);
@@ -262,7 +262,7 @@ void AppMessage::AddMessage(Message msg,  MsgError &qerror)
             while (1)
             {
                 nRcv = write(sockNetModule[msg.GetRcv()], "read", 4);
-                if ((nRcv != -1) && (nRcv != 0))
+                if (nRcv > 0)
                     break;
             }
         }

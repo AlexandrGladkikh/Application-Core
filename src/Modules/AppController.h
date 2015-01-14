@@ -20,9 +20,11 @@ private:
     app::AppMessage &dataMsg;
 
     int selfID;
+    int netID;
 public:
     HandlerAppController(app::AppData *appData);
     inline void SetSelfID(int id);
+    inline void SetNetID(int id);
 
     bool handler(app::Message &event);
 };

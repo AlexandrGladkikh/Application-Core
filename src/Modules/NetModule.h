@@ -47,7 +47,7 @@ struct PrivateMsg
 
 struct PublicMsg
 {
-    std::string idUserName;
+    int idUser;
     std::vector<int> halfTransmission;
 
     std::string msg;
@@ -76,6 +76,7 @@ struct ChatRoom
     std::deque<PublicMsg>::iterator GetPublicMsg(int& size);
     void ErasePublicMsg(std::deque<PublicMsg>::iterator itPublicMsg);
     void ErasePrivateMsg(std::deque<PrivateMsg>::iterator itPrivateMsg);
+    bool CheckEmptyMsg();
 
     unsigned int* GetUsrID();
     unsigned int GetUsr(int pos);
@@ -105,6 +106,7 @@ public:
      std::deque<int>::iterator GetIDRoomWaitHadler(int &size);
      ChatRoom* GetChatRoom(unsigned int num);
      void SetRoomWaitHandler(unsigned int num);
+     void RemoveRoomWaitHandler(std::deque<int>::iterator room);
 };
 
 class Net
@@ -121,6 +123,8 @@ private:
     char buf[1000];
 
     int currentNumberUser;
+
+    int maxId;
 
     bool HandlerLocalMsg();
     void HandlerNewUser();
