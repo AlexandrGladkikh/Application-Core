@@ -22,7 +22,7 @@ Message::~Message()
 
 bool Message::CreateMessage(const char* textmsg, int rcv, int snd)
 {
-    if (strlen(textmsg) != 0)
+    //if (strlen(textmsg) != 0)
      //   bodyMessage = "";
     //else
     {

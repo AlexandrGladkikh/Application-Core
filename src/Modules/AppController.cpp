@@ -1,6 +1,7 @@
 #include "AppController.h"
 #include "../including/AppData.h"
 #include "../Wrap/Log.h"
+#include "../Wrap/UserData.h"
 #include "../../appcontroller/Appcontroller/appcont.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -83,6 +84,13 @@ bool HandlerAppController::handler(app::Message &event)
     if (AppCont(event))
     {
         std::cout << "Получение аутентификационных данных пользователя " << std::endl;
+        std::cout.flush();
+
+        const char* str = event.GetBodyMsg();
+
+        wrap::UserDataAdd *usrData = (wrap::UserDataAdd*)str;
+
+        std::cout << usrData->GetSock() << std::endl;
         std::cout.flush();
         app::MsgError err;
         event.SetRcv(event.GetSnd());

@@ -48,7 +48,6 @@ struct PrivateMsg
 struct PublicMsg
 {
     int idUser;
-    std::vector<int> halfTransmission;
 
     std::string msg;
 };

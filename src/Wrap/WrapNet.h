@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <sys/poll.h>
 #include <string.h>
+#include <signal.h>
 
 namespace wrap {
 ////////////////////////////////////
@@ -16,6 +17,8 @@ namespace wrap {
 #endif
 
 #define LISTENQ 5
+
+typedef	void	Sigfunc(int);
 
 int Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
 
@@ -30,6 +33,10 @@ int Fcntl(int fd, int cmd, int arg);
 bool Close(int fd);
 
 int Poll(pollfd *fdarray, unsigned long nfds, int timeout);
+
+Sigfunc *signal(int signo, Sigfunc *func);
+
+Sigfunc *Signal(int signo, Sigfunc *func);
 
 ////////////////////////////////////
 }

@@ -137,39 +137,53 @@ void Net::Process()
 
             if (connfd != -1 && (errno != EAGAIN || errno != EWOULDBLOCK || errno != ECONNABORTED))
             {
-                int i;
-                for (i=netData->maxUser+2; i<2*netData->maxUser+2; i++)
+                if (currentNumberUser < netData->maxUser)
                 {
-                    if (client[i].fd == -1)
+                    int i;
+                    for (i=netData->maxUser+2; i<2*netData->maxUser+2; i++)
                     {
-                        std::cout << "id нового клиента: " << i << std::endl;
-                        client[i].fd = connfd;
-                        client[i].events = POLLRDNORM;// & POLLRDHUP;
-                        break;
+                        if (client[i].fd == -1)
+                        {
+                            std::cout << "id нового клиента: " << i << std::endl;
+                            std::cout.flush();
+                            client[i].fd = connfd;
+                            client[i].events = POLLRDNORM;// & POLLRDHUP;
+                            break;
+                        }
                     }
-                }
 
-                if (i == 2*netData->maxUser+2 && connfd != -1)
-                {
-                    wrap::Close(connfd);
-                    connfd = -1;
+                    if (i == 2*netData->maxUser+2 && connfd != -1)
+                    {
+                        std::cout << "перебор пользователей, текущее число: " << currentNumberUser << std::endl;
+                        std::cout.flush();
+                        wrap::Close(connfd);
+                        connfd = -1;
+                    }
+                    else
+                    {
+                        ++currentNumberUser;
+                        if (i > maxId)
+                            maxId = i;
+                    }
+
+                    /*if (currentNumberUser >= netData->maxUser)
+                    {
+                        std::cout << "создание нового потока" << std::endl;
+                        std::cout.flush();
+                        CreateNewThread();
+                    }*/
+
+                    if (--nReady<=0)
+                        continue;
                 }
                 else
                 {
-                    if (i > maxId)
-                        maxId = i;
-                }
-
-                ++currentNumberUser;
-                if (currentNumberUser >= netData->maxUser)
-                {
-                    std::cout << "создание нового потока" << std::endl;
+                    std::cout << "перебор пользователей, текущее число: " << currentNumberUser
+                              << "допустимое число пользователей: " << netData->maxUser << std::endl;
                     std::cout.flush();
-                    CreateNewThread();
+                    wrap::Close(connfd);
+                    connfd = -1;
                 }
-
-                if (--nReady<=0)
-                    continue;
             }
         }
 
@@ -344,7 +358,7 @@ void Net::HandlerNewUser()
                         std::string pass = strRequest.substr((loginEnd+14), (passEnd-(loginEnd+14)));
 
                         std::cout << "Отправа аутентификационных данных: логин-" << login.c_str() <<
-                                  " пароль-" << pass.c_str() << std::endl;
+                                  " пароль-" << pass.c_str() << " сокет: " << usrData->GetSock() << std::endl;
                         std::cout.flush();
 
                         usrData->SetName(login.c_str());
@@ -412,6 +426,9 @@ void Net::RecvData()
                 {
                     std::string strRequest;
                     strRequest.append(buf, nRcv);
+                    std::cout << "получено сообщение: " << strRequest << std::endl;
+                    std::cout.flush();
+
                     ChatRoom *chatRoom;
                     chatRoom = chat->GetChatRoom(userData[i].numberRoom);
 
@@ -420,39 +437,90 @@ void Net::RecvData()
                         int rcv = atoi(strRequest.substr((strRequest.find("<nameRcv>")+9), strRequest.find("</nameRcv>")).c_str());
                         if (rcv == -1)
                         {
+                            std::cout << "публичное сообщение" << std::endl;
+                            std::cout.flush();
                             PublicMsg pubMsg;
                             pubMsg.idUser = userData[i].posInRoom;
-                            pubMsg.msg = strRequest;
+
+                            size_t dataStart = strRequest.find(DATASTART)+6;
+                            size_t dataEnd = strRequest.rfind(DATAEND);
+                            pubMsg.msg.append(MSGSTART);
+                            pubMsg.msg.append(NAMESNDSTART);
+                            char baf[10];
+                            sprintf(baf, "%d", userData[i].posInRoom);
+                            pubMsg.msg.append(baf);
+                            pubMsg.msg.append(NAMESNDEND);
+                            pubMsg.msg.append(DATASTART);
+                            pubMsg.msg.append(strRequest.substr(dataStart, (dataEnd-dataStart)));
+                            pubMsg.msg.append(DATAEND);
+                            pubMsg.msg.append(MSGEND);
                             chatRoom->AddPublicMsg(pubMsg);
 
-                            if (!chatRoom[i].CheckWaitHandler())
+                            if (!chatRoom->CheckWaitHandler())
                             {
-                                std::cout << "добавление комнаты в очередь ожидающих обработки, номер комнаты: " << i << std::endl;
+                                std::cout << "добавление комнаты в очередь ожидающих обработки, номер комнаты: " << userData[i].numberRoom << std::endl;
                                 std::cout.flush();
                                 chat->SetRoomWaitHandler(userData[i].numberRoom);
                                 chatRoom[i].SetWaitHandler(true);
                             }
                         }
-                        else
+                        else if (rcv >= 0 && rcv < netData->userOnchatRoom)
                         {
-                            PrivateMsg prvtMsg;
-                            prvtMsg.idUserRcv = rcv;
-                            prvtMsg.idUserSnd = userData[i].posInRoom;
-                            prvtMsg.msg = strRequest;
-                            chatRoom->AddPrivateMsg(prvtMsg);
+                            std::cout << "приватное сообщение" << std::endl;
+                            std::cout.flush();
 
-                            if (!chatRoom[i].CheckWaitHandler())
+                            if (chatRoom->GetUsr(rcv) != -1)
                             {
-                                std::cout << "добавление комнаты в очередь ожидающих обработки, номер комнаты: " << i << std::endl;
-                                std::cout.flush();
-                                chat->SetRoomWaitHandler(userData[i].numberRoom);
-                                chatRoom[i].SetWaitHandler(true);
+                                PrivateMsg prvtMsg;
+                                prvtMsg.idUserRcv = rcv;
+                                prvtMsg.idUserSnd = userData[i].posInRoom;
+                                size_t dataStart = strRequest.find(DATASTART)+6;
+                                size_t dataEnd = strRequest.rfind(DATAEND);
+                                prvtMsg.msg.append(MSGSTART);
+                                prvtMsg.msg.append(NAMESNDSTART);
+                                char baf[10];
+                                sprintf(baf, "%d", userData[i].posInRoom);
+                                prvtMsg.msg.append(baf);
+                                prvtMsg.msg.append(NAMESNDEND);
+                                prvtMsg.msg.append(DATASTART);
+                                prvtMsg.msg.append(strRequest.substr(dataStart, (dataEnd-dataStart)));
+                                prvtMsg.msg.append(DATAEND);
+                                prvtMsg.msg.append(MSGEND);
+                                chatRoom->AddPrivateMsg(prvtMsg);
+
+                                if (!chatRoom->CheckWaitHandler())
+                                {
+                                    std::cout << "добавление комнаты в очередь ожидающих обработки, номер комнаты: " << userData[i].numberRoom << std::endl;
+                                    std::cout.flush();
+                                    chat->SetRoomWaitHandler(userData[i].numberRoom);
+                                    chatRoom[i].SetWaitHandler(true);
+                                }
+                            }
+                            else
+                            {
+                                PrivateMsg prvtMsg;
+                                prvtMsg.idUserRcv = userData[i].posInRoom;
+                                prvtMsg.idUserSnd = -1;
+                                prvtMsg.msg.append(MSGSTART);
+                                prvtMsg.msg.append(BADREQUEST);
+                                prvtMsg.msg.append(MSGEND);
+                                chatRoom->AddPrivateMsg(prvtMsg);
+
+                                if (!chatRoom->CheckWaitHandler())
+                                {
+                                    std::cout << "добавление комнаты в очередь ожидающих обработки, номер комнаты: " << userData[i].numberRoom << std::endl;
+                                    std::cout.flush();
+                                    chat->SetRoomWaitHandler(userData[i].numberRoom);
+                                    chatRoom[i].SetWaitHandler(true);
+                                }
                             }
                         }
 
                     }
                     else
                     {
+                        std::cout << "некорректное выражение" << std::endl;
+                        std::cout.flush();
                         PrivateMsg prvtMsg;
                         prvtMsg.idUserRcv = userData[i].posInRoom;
                         prvtMsg.idUserSnd = -1;
@@ -461,9 +529,9 @@ void Net::RecvData()
                         prvtMsg.msg.append(MSGEND);
                         chatRoom->AddPrivateMsg(prvtMsg);
 
-                        if (!chatRoom[i].CheckWaitHandler())
+                        if (!chatRoom->CheckWaitHandler())
                         {
-                            std::cout << "добавление комнаты в очередь ожидающих обработки, номер комнаты: " << i << std::endl;
+                            std::cout << "добавление комнаты в очередь ожидающих обработки, номер комнаты: " << userData[i].numberRoom << std::endl;
                             std::cout.flush();
                             chat->SetRoomWaitHandler(userData[i].numberRoom);
                             chatRoom[i].SetWaitHandler(true);

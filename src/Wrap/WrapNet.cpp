@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include "Log.h"
 
 namespace wrap {
 ////////////////////////////////////
@@ -16,6 +17,39 @@ int Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struc
     if ((n = select(nfds, readfds, writefds, exceptfds, timeout)) < 0)
         return -1;
     return(n);		/* can return 0 on timeout */
+}
+
+typedef	void	Sigfunc(int);
+
+Sigfunc *signal(int signo, Sigfunc *func)
+{
+    struct sigaction	act, oact;
+
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    if (signo == SIGALRM) {
+#ifdef	SA_INTERRUPT
+        act.sa_flags |= SA_INTERRUPT;	/* SunOS 4.x */
+#endif
+    } else {
+#ifdef	SA_RESTART
+        act.sa_flags |= SA_RESTART;		/* SVR4, 44BSD */
+#endif
+    }
+    if (sigaction(signo, &act, &oact) < 0)
+        return(SIG_ERR);
+    return(oact.sa_handler);
+}
+/* end signal */
+
+Sigfunc *Signal(int signo, Sigfunc *func)	/* for our signal() function */
+{
+    Sigfunc	*sigfunc;
+
+    if ( (sigfunc = signal(signo, func)) == SIG_ERR)
+        Log("BADSIGNAL", "signal");
+    return(sigfunc);
 }
 
 int CreateSocket(const char *host, const char *serv, socklen_t *addrlenp)
