@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include "errno.h"
+#include <iostream>
 
 namespace modules {
 ////////////////////////////////////
@@ -192,6 +193,7 @@ bool ControllerHandler::EventHandler(int behaviorEvent, std::string param)
         {
             dataMsg->GetMessage(msg, err);
             wrap::Log(msg.GetBodyMsg(), LOGCONTROLLER);
+            std::cout << msg.GetBodyMsg() << msg.GetSnd() << std::endl;
         }
         return false;
     }

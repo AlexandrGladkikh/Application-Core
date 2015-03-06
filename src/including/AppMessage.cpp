@@ -49,7 +49,7 @@ void Message::SetSnd(int snd)
 
 void Message::SetBodyMsg(std::string str)
 {
-    memcpy(bodyMessage, str.c_str(), str.length());
+    strcpy(bodyMessage, str.c_str());
     lengthMessage = strlen(bodyMessage);
 }
 
