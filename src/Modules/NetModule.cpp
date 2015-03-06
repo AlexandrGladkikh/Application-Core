@@ -454,7 +454,7 @@ void Net::RecvData()
                             pubMsg.msg.append(baf);
                             pubMsg.msg.append(PRIVATEMSGEND);
                             pubMsg.msg.append(NAMESNDSTART);
-                            pubMsg.msg.append(userData[i].name);
+                            pubMsg.msg.append(userData[i].name + "<" + std::to_string(userData[i].posInRoom) + ">");
                             pubMsg.msg.append(NAMESNDEND);
                             pubMsg.msg.append(DATASTART);
                             pubMsg.msg.append(strRequest.substr(dataStart, (dataEnd-dataStart)));
@@ -487,7 +487,7 @@ void Net::RecvData()
                                 prvtMsg.msg.append(baf);
                                 prvtMsg.msg.append(PRIVATEMSGEND);
                                 prvtMsg.msg.append(NAMESNDSTART);
-                                prvtMsg.msg.append(userData[i].name);
+                                prvtMsg.msg.append(userData[i].name + "<" + std::to_string(userData[i].posInRoom) + ">");
                                 prvtMsg.msg.append(NAMESNDEND);
                                 prvtMsg.msg.append(DATASTART);
                                 prvtMsg.msg.append(strRequest.substr(dataStart, (dataEnd-dataStart)));
