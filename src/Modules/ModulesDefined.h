@@ -27,6 +27,8 @@ namespace modules {
 
 #define MSGSTART        "<message>"
 #define MSGEND          "</message>"
+#define PRIVATEMSGSTART "<prvtMsg>"
+#define PRIVATEMSGEND "</prvtMsg>"
 #define NAMERCVSTART    "<nameRcv>"
 #define NAMERCVEND      "</nameRcv>"
 #define NAMESNDSTART    "<nameSnd>"

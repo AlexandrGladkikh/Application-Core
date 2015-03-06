@@ -364,8 +364,8 @@ AppController.o: ../../src/Modules/AppController.cpp ../../src/Modules/AppContro
 		../../src/including/AppSettings.h \
 		../../src/Modules/ModulesDefined.h \
 		../../src/Wrap/Log.h \
-		../../appcontroller/Appcontroller/appcont.h \
-		../../src/Wrap/UserData.h
+		../../src/Wrap/UserData.h \
+		../../appcontroller/Appcontroller/appcont.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o AppController.o ../../src/Modules/AppController.cpp
 
 NetModule.o: ../../src/Modules/NetModule.cpp ../../src/Modules/NetModule.h \
@@ -389,7 +389,8 @@ UI.o: ../../src/Modules/UI.cpp ../../src/Modules/UI.h \
 		../../src/Wrap/WrapNet.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o UI.o ../../src/Modules/UI.cpp
 
-WrapNet.o: ../../src/Wrap/WrapNet.cpp ../../src/Wrap/WrapNet.h
+WrapNet.o: ../../src/Wrap/WrapNet.cpp ../../src/Wrap/WrapNet.h \
+		../../src/Wrap/Log.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o WrapNet.o ../../src/Wrap/WrapNet.cpp
 
 Log.o: ../../src/Wrap/Log.cpp ../../src/Wrap/Log.h

@@ -100,7 +100,7 @@ public:
     ~Chat();
 
      void AddUsr(int id, unsigned int& posInRoom, unsigned int& numberRoom, const char* name, int maxUser, UserData *usrData);
-     void RemoveUsr(unsigned int posInRoom, unsigned int numberRoom);
+     void RemoveUsr(unsigned int posInRoom, unsigned int numberRoom, const char* name);
 
      std::deque<int>::iterator GetIDRoomWaitHadler(int &size);
      ChatRoom* GetChatRoom(unsigned int num);
