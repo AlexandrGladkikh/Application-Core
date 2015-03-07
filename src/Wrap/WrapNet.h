@@ -6,6 +6,8 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/poll.h>
+#include <sys/resource.h>
+#include <sys/time.h>
 #include <string.h>
 #include <signal.h>
 

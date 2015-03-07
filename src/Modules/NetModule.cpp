@@ -1078,6 +1078,10 @@ bool InitNetModule(NetData& netData, app::AppMessage& dataMsg, app::AppSetting& 
     netData.userOnchatRoom = sttngData.GetUserOnChatRoom();
     netData.createThread = false;
 
+    struct rlimit limit;
+    getrlimit(RLIMIT_NOFILE, &limit);
+    std::cout << limit.rlim_cur << ' ' << limit.rlim_max << std::endl;
+
     app::Message msg;
     msg.SetRcv(app::NewNetModule);
     app::MsgError err;

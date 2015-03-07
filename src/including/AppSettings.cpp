@@ -342,7 +342,7 @@ bool AppSetting::ResetSetting()
     settingData.SetHost("0::0");
     settingData.SetServ("15348");
     settingData.SetRatioAppContAppNet(3);
-    settingData.SetUserOnThread(500);
+    settingData.SetUserOnThread(4000);
     settingData.SetUserOnChatRoom(10);
 
     std::fstream setting;

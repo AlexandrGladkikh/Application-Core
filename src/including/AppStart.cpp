@@ -44,8 +44,9 @@ void ThreadData::GetAttr(pthread_attr_t &attrObj)
 }
 
 bool StartX(AppData *appData)
-{
+{    
     wrap::Signal(SIGPIPE, SIG_IGN);
+
     app::ThreadData threadData;
 
     pthread_t thread;
